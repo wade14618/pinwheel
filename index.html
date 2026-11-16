@@ -33,7 +33,7 @@ html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.app{max-width:468px;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;gap:16px}
+.app{max-width:468px;margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:12px}
 
 header{display:flex;align-items:center;gap:8px}
 .brand{display:flex;align-items:center;gap:8px}
@@ -152,7 +152,7 @@ header{display:flex;align-items:center;gap:8px}
 
 dialog{border:0;border-radius:24px;padding:0;width:min(470px,calc(100vw - 24px));max-width:none;background:var(--surface);color:var(--ink);overflow:hidden}
 dialog::backdrop{background:rgba(8,12,24,.6)}
-.help{padding:22px 22px 24px;display:grid;gap:22px;max-height:88vh;overflow-y:auto;overscroll-behavior:contain}
+.help{padding:22px 22px 48px;display:grid;gap:22px;max-height:82vh;max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .help h2{font-family:var(--display);font-size:32px;letter-spacing:-.02em;margin:0 0 6px;line-height:1.05}
 .help .sub{font-size:17px;line-height:1.4;margin:0;color:var(--muted)}

@@ -81,9 +81,10 @@ header{display:flex;align-items:center;gap:8px}
 .c3::after{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
 .board{transition:opacity .35s, transform .35s}
 .board.out{opacity:0;transform:scale(.94)}
-.cele{width:min(100%,420px);aspect-ratio:1;display:grid;place-items:center}
-.cele svg{width:80%;height:80%;animation:celespin 1.5s ease-in-out forwards}
-@keyframes celespin{0%{transform:rotate(0) scale(.3);opacity:0}15%{transform:rotate(90deg) scale(1);opacity:1}85%{transform:rotate(690deg) scale(1);opacity:1}100%{transform:rotate(720deg) scale(.15);opacity:0}}
+.cele{width:min(100%,420px);aspect-ratio:1;display:grid;place-items:center;will-change:transform,opacity;animation:celefade 4s linear forwards}
+.cele svg{width:80%;height:80%;will-change:transform;animation:celerot 3s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes celerot{from{transform:rotate(0)}to{transform:rotate(1260deg)}}
+@keyframes celefade{0%{opacity:0;transform:scale(.6);animation-timing-function:ease-out}12.5%{opacity:1;transform:scale(1)}87.5%{opacity:1;transform:scale(1);animation-timing-function:ease-in}100%{opacity:0;transform:scale(.3)}}
 .snaps{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:20px 16px;width:min(100%,420px);animation:snapin .5s ease-out}
 @keyframes snapin{from{opacity:0;transform:scale(.96)}}
 .snap{margin:0;display:grid;gap:8px}
@@ -170,7 +171,18 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .mini .t.mate{box-shadow:inset 0 0 0 2.5px var(--tile-ink)}
 .mini .t.locked{box-shadow:none;background-image:repeating-linear-gradient(135deg,rgba(19,28,51,.2) 0 2px,transparent 2px 6px)}
 .mini .link polygon{stroke-width:1.1}
+.mini .t{position:relative}
+.mini .t b{position:absolute;top:2px;left:5px;font-size:10px;font-weight:800;opacity:.75}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:start;width:100%}
+.pair .col{display:grid;gap:8px;justify-items:center}
+.pair .mini{width:100%;max-width:150px;gap:4px}
+.pair .mini .t{font-size:17px}
+.pair .lab{font-size:13px;font-weight:700;color:var(--muted)}
+.pair .arrow{align-self:center;text-align:center;font-size:12px;font-weight:700;line-height:1.2;color:var(--muted);padding-top:20px}
+.pair .strip{font-size:15px;gap:6px}
+.pair .strip i{width:14px;height:14px;border-radius:5px}
 .strips{display:grid;gap:6px;min-width:112px}
+.pair .strips{min-width:0}
 .strip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:.1em;transition:opacity .3s}
 .strip i{width:18px;height:18px;border-radius:6px;background:var(--c);flex:none}
 .strip.dim{opacity:.25}
@@ -181,6 +193,11 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .chip{padding:1px 7px;border-radius:7px;background:var(--c);color:var(--tile-ink);font-weight:800}
 .one{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:20%;background:var(--c);color:var(--tile-ink);font-weight:800;font-size:20px;
   background-image:repeating-linear-gradient(135deg,rgba(19,28,51,.2) 0 2px,transparent 2px 6px)}
+.tips summary{font-size:18px;font-weight:800;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border-radius:14px}
+.tips summary::-webkit-details-marker{display:none}
+.tips summary::after{content:"+";font-size:22px;font-weight:600;line-height:1;color:var(--muted)}
+.tips[open] summary::after{content:"\2212"}
+.tips ul{margin-top:12px}
 .help .note{color:var(--muted);font-size:15px;line-height:1.5;border-top:1.5px solid var(--line);padding-top:18px;margin:0}
 .help .note b{color:var(--ink)}
 .help .btn.primary{padding:14px;font-size:17px}
@@ -239,48 +256,63 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     <div class="help-head">
       <div>
         <h2 id="helpTitle">How to play</h2>
-        <p class="sub">Four secret words are hiding in the grid. <b>Spin the colors to decode them.</b></p>
+        <p class="sub">Four words are jumbled together in one grid. <b>Change the tile colors until every color spells a real word.</b></p>
       </div>
       <button class="icon-btn" id="helpX" aria-label="Close">✕</button>
     </div>
 
     <section class="step">
-      <h3><span class="n">1</span>Every color hides a word</h3>
+      <h3><span class="n">1</span>Read one color at a time</h3>
       <div class="fig" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
-      <p>Look at only the <span class="chip c0">coral</span> tiles. Read them like a book: left to right, starting with the top row. They spell <b>SPIN</b>. The yellow, green and blue tiles each spell a word the same way.</p>
+      <p>To see what a color spells, read only the tiles of that color, left to right and top to bottom, like reading a page. Here the four <span class="chip c0">coral</span> tiles, read in order, spell <b>SPIN</b>.</p>
+      <p>The four boxes under the grid show what each color spells right now. The puzzle starts with the colors mixed up, so at first they show nonsense. You have solved it when all four show real words.</p>
     </section>
 
     <section class="step">
-      <h3><span class="n">2</span>Tiles work in teams of four</h3>
+      <h3><span class="n">2</span>Tiles are linked in groups of four</h3>
       <div class="fig" aria-hidden="true"><div class="mini" id="fig2"></div></div>
-      <p>Every tile is on a team of four, called a <b>pinwheel</b>. Tap a tile and its whole team passes colors one step around the circle, like a pinwheel turning.</p>
-      <p><b>The letters never move.</b> Only the colors do.</p>
+      <p>Every tile belongs to a group of four, called a <b>pinwheel</b>. Here the dotted line joins one of them.</p>
+      <p><b>Each pinwheel always holds one tile of each color:</b> one coral, one yellow, one green and one blue. So every pinwheel gives exactly one letter to each of the four words.</p>
     </section>
 
     <section class="step">
-      <h3><span class="n">3</span>Spin until every color spells a word</h3>
-      <div class="fig" aria-hidden="true"><div class="mini" id="fig3"></div><div class="strips" id="fig3s"></div><p class="status" id="fig3t"></p></div>
-      <p>The puzzle starts out mixed up. The strips under the grid show what each color spells right now. Keep spinning pinwheels until all four are real words. Then you have cracked the code!</p>
+      <h3><span class="n">3</span>Tap a tile to turn its pinwheel</h3>
+      <div class="fig" aria-hidden="true">
+        <div class="pair">
+          <div class="col"><span class="lab">Before</span><div class="mini" id="fig2a"></div><div class="strips" id="fig2as"></div></div>
+          <div class="arrow">one<br>tap<br>→</div>
+          <div class="col"><span class="lab">After</span><div class="mini" id="fig2b"></div><div class="strips" id="fig2bs"></div></div>
+        </div>
+      </div>
+      <p>Tap any tile and the four colors in its pinwheel each move one tile clockwise. The pinwheel still has one of each color, just in different places.</p>
+      <p><b>The letters never move.</b> Only the colors change, so one tap changes one letter in all four words at once.</p>
+      <p>Keep turning pinwheels until all four boxes show real words. There is only one solution, and all four words fall into place at the same moment.</p>
     </section>
 
     <section class="step">
-      <h3><span class="n">4</span>Striped tiles are free clues</h3>
+      <h3><span class="n">4</span>Striped tiles are already correct</h3>
       <div class="fig" aria-hidden="true"><span class="one c0">S</span><span class="one c1">W</span><span class="one c2">E</span><span class="one c3">Y</span></div>
-      <p>Striped tiles are already the right color, so they stay put. The four corners always start out striped. The top-left letter is always the first letter of its word.</p>
+      <p>A striped tile already has its correct color and will not change. The four corners always start striped, so the top-left letter is always the first letter of its word.</p>
     </section>
 
     <section class="step">
-      <h3>Good to know</h3>
+      <h3>Controls</h3>
       <ul>
-        <li>The four words always go together, like four birds or four things in a kitchen.</li>
-        <li>The <b>theme</b> above the grid tells you what the four words have in common.</li>
-        <li>Stuck? <b>Hint</b> sets one pinwheel for you.</li>
+        <li><b>Hint</b> sets one pinwheel for you and stripes it.</li>
         <li><b>Reset</b> puts the colors back where they started.</li>
-        <li>Small puzzles have 4-letter words. Medium has 6. Large has 9.</li>
       </ul>
     </section>
 
-    <p class="note"><b>A real secret code.</b> Pinwheel comes from the turning grille, a trick used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more. Solve a puzzle and you will see all four turns side by side.</p>
+    <details class="tips">
+      <summary>Tips</summary>
+      <ul>
+        <li><b>Start with the theme.</b> The four words share a theme, shown above the grid. Guess a word that fits it, then look for its letters in reading order.</li>
+        <li><b>Use the corners.</b> The top-left letter starts the coral word and the bottom-right letter ends the green word. They never change.</li>
+        <li><b>Top rows are beginnings, bottom rows are endings.</b> A letter in the top row is near the start of its word. One in the bottom row is near the end.</li>
+      </ul>
+    </details>
+
+    <p class="note"><b>An actual secret code.</b> Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
 
     <label class="opt"><input type="checkbox" id="hideTheme"> Hide the theme until I tap it (harder)</label>
     <label class="opt"><input type="checkbox" id="shapes"> Add a shape to each color (helps if colors are hard to tell apart)</label>
@@ -395,7 +427,7 @@ function chrome(){
   $('controls').hidden = false; $('copied').textContent = '';
   $('board').hidden = S.done; $('reads').hidden = S.done; $('snaps').hidden = !S.done;
   if (S.done) snaps();
-  lede(S.done ? 'One card with holes, turned a quarter turn each time, reveals the coded words.' : '');
+  lede(S.done ? 'A centuries-old cipher: One pattern of holes unlocks all four words, a quarter turn at a time.' : '');
 }
 function lede(html){ const c = $('caption'); c.innerHTML = html || ''; c.hidden = !html; }
 function startClock(){
@@ -437,7 +469,7 @@ async function win(){
   await sleep(500); if (id !== runId) return;
   board.classList.add('out'); await sleep(350); if (id !== runId) return;
   board.hidden = true; $('reads').hidden = true; cele.hidden = false;
-  await sleep(1500); if (id !== runId) return;
+  await sleep(4000); if (id !== runId) return;
   cele.hidden = true; board.classList.remove('out'); chrome();
 }
 function shareText(){
@@ -470,12 +502,13 @@ document.querySelectorAll('.sizes button').forEach(b => b.onclick = () => { n = 
 const DEMO = { g:'SWPOGALMPRINADYE', s:[0,1,3,2] };
 let demoTimer = null;
 function mini(el, ph, o){
-  o = o || {}; const ob = orbits(4), col = [];
+  o = o || {}; o.k = 0; const ob = orbits(4), col = [];
   ob.forEach((q,i) => q.forEach((c,j) => col[c] = (j + ph[i]) & 3));
   el.innerHTML = '';
   for (let c=0; c<16; c++){
     const t = document.createElement('div'); t.className = 't c' + col[c]; t.textContent = DEMO.g[c];
     if (o.lit != null && col[c] !== o.lit) t.classList.add('dim');
+    if (o.num && col[c] === o.lit) t.insertAdjacentHTML('beforeend', '<b>' + (++o.k) + '</b>');
     if (o.team != null){ if (ob[o.team].includes(c)) t.classList.add('mate'); else if (o.fade) t.classList.add('dim'); }
     if (o.locked && ob[0].includes(c)) t.classList.add('locked');
     el.appendChild(t);
@@ -490,18 +523,11 @@ function strips(el, words, lit, ok){
   el.innerHTML = words.map((w,k) => '<div class="strip c'+k+(lit != null && lit !== k ? ' dim' : '')+'"><i></i>'+w+'<span class="tick">✓</span></div>').join('');
 }
 function drawHelp(){
-  strips($('fig1s'), mini($('fig1'), DEMO.s, {lit:0}), 0, false);
+  strips($('fig1s'), mini($('fig1'), DEMO.s, {lit:0, num:true}), 0, false);
   mini($('fig2'), DEMO.s, {team:1, fade:true});
-  const ph = DEMO.s.slice(); let step = 2;
-  const frame = () => {
-    ph[1] = (DEMO.s[1] + step) & 3; const ok = step === 0;
-    strips($('fig3s'), mini($('fig3'), ph, {team:1, locked:true}), null, ok);
-    $('fig3t').textContent = ok ? 'All four are words. Solved!' : 'Not words yet. Spin again…';
-    $('fig3t').className = 'status' + (ok ? ' ok' : '');
-    demoTimer = reduced ? null : setTimeout(frame, ok ? 2600 : 1300);
-    step = (step + 3) & 3;
-  };
-  clearTimeout(demoTimer); if (reduced) step = 0; frame();
+  const before = DEMO.s.slice(); before[1] = (DEMO.s[1] + 1) & 3;
+  strips($('fig2as'), mini($('fig2a'), before, {team:1, locked:true}), null, false);
+  strips($('fig2bs'), mini($('fig2b'), DEMO.s, {team:1, locked:true}), null, true);
 }
 function openHelp(){ wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh'; drawHelp(); $('help').showModal(); $('helpBody').scrollTop = 0; }
 $('helpBtn').onclick = openHelp;

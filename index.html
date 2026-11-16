@@ -37,8 +37,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 header{display:flex;align-items:center;gap:8px}
 .brand{display:flex;align-items:center;gap:8px}
-.brand svg{width:30px;height:30px;flex:none}
-.brand h1{font-family:var(--display);font-weight:700;font-size:clamp(23px,6.6vw,28px);letter-spacing:-.02em;margin:0;line-height:1}
+.brand svg{width:32px;height:32px;flex:none}
+.brand h1{font-family:var(--display);font-weight:700;font-size:clamp(22px, calc((100vw - 252px) / 4.1), 40px);letter-spacing:-.02em;margin:0;line-height:1;white-space:nowrap}
 .logo-spin{transform-origin:0 0;animation:idle 14s linear infinite}
 @keyframes idle{to{transform:rotate(360deg)}}
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-weight:800}
@@ -177,17 +177,21 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .pair .col{display:grid;gap:8px;justify-items:center}
 .pair .mini{width:100%;max-width:150px;gap:4px}
 .pair .mini .t{font-size:17px}
+.pair .strip{font-size:12.5px;padding:3px 5px;gap:4px;border-radius:8px;letter-spacing:.04em}
+.pair .strip i{width:10px;height:10px;border-radius:3px}
 .pair .lab{font-size:13px;font-weight:700;color:var(--muted)}
 .pair .arrow{align-self:center;text-align:center;font-size:12px;font-weight:700;line-height:1.2;color:var(--muted);padding-top:20px}
-.pair .strip{font-size:15px;gap:6px}
-.pair .strip i{width:14px;height:14px;border-radius:5px}
-.strips{display:grid;gap:6px;min-width:112px}
-.pair .strips{min-width:0}
-.strip{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:.1em;transition:opacity .3s}
-.strip i{width:18px;height:18px;border-radius:6px;background:var(--c);flex:none}
-.strip.dim{opacity:.25}
-.strip .tick{margin-left:2px;opacity:0;transition:opacity .2s}
-.strips.ok .tick{opacity:1}
+.strips{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;max-width:214px}
+.pair .strips{max-width:150px;gap:4px}
+.strip{display:flex;align-items:center;gap:6px;min-width:0;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:5px 8px;
+  font-weight:800;font-size:15px;letter-spacing:.06em;transition:opacity .3s}
+.strip i{width:13px;height:13px;border-radius:4px;background:var(--c);flex:none}
+.strip.dim{opacity:.3}
+.strip .tick{display:none}
+.fig.stack{flex-direction:column;gap:12px}
+.fig.stack .mini{width:214px;gap:6px}
+.fig.stack .mini .t{font-size:25px}
+.fig.stack .mini .t b{font-size:11px;top:3px;left:6px}
 .status{flex-basis:100%;text-align:center;font-weight:600;font-size:14px;color:var(--muted);margin:0}
 .status.ok{color:var(--ink)}
 .chip{padding:1px 7px;border-radius:7px;background:var(--c);color:var(--tile-ink);font-weight:800}
@@ -263,7 +267,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 
     <section class="step">
       <h3><span class="n">1</span>Read one color at a time</h3>
-      <div class="fig" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
+      <div class="fig stack" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
       <p>To see what a color spells, read only the tiles of that color, left to right and top to bottom, like reading a page. Here the four <span class="chip c0">coral</span> tiles, read in order, spell <b>SPIN</b>.</p>
       <p>The four boxes under the grid show what each color spells right now. The puzzle starts with the colors mixed up, so at first they show nonsense. You have solved it when all four show real words.</p>
     </section>

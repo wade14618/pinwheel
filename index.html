@@ -45,6 +45,7 @@ header{display:flex;align-items:center;gap:8px}
 
 .stepper{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;font-variant-numeric:tabular-nums}
 .stepper button{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);line-height:1}
+.stepper button:disabled{opacity:.35;cursor:default}
 .stepper .when{display:grid;justify-items:center;line-height:1.15;min-width:52px}
 .stepper .when b{font-weight:700;font-size:15px;white-space:nowrap}
 .stepper .date{color:var(--muted);font-weight:500;font-size:12.5px;white-space:nowrap}
@@ -202,6 +203,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .tips summary::after{content:"+";font-size:22px;font-weight:600;line-height:1;color:var(--muted)}
 .tips[open] summary::after{content:"\2212"}
 .tips ul{margin-top:12px}
+.help .ver{margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .help .note{color:var(--muted);font-size:15px;line-height:1.5;border-top:1.5px solid var(--line);padding-top:18px;margin:0}
 .help .note b{color:var(--ink)}
 .help .btn.primary{padding:14px;font-size:17px}
@@ -247,6 +249,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
   <div class="controls" id="controls">
     <button class="btn" id="again" hidden>Play again</button>
     <button class="btn" id="hint">Hint</button>
+    <button class="btn" id="undo">Undo</button>
     <button class="btn" id="reset">Reset</button>
     <span class="clock" id="clock">0:00</span>
     <button class="btn share" id="copy" aria-label="Copy your result to share" hidden><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9h-1a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-8a2 2 0 0 0 -2 -2h-1"/><path d="M12 14v-11"/><path d="M9 6l3 -3l3 3"/></svg></button>
@@ -280,16 +283,17 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     </section>
 
     <section class="step">
-      <h3><span class="n">3</span>Tap a tile to turn its pinwheel</h3>
+      <h3><span class="n">3</span>Tap to select, tap again to turn</h3>
       <div class="fig" aria-hidden="true">
         <div class="pair">
           <div class="col"><span class="lab">Before</span><div class="mini" id="fig2a"></div><div class="strips" id="fig2as"></div></div>
-          <div class="arrow">one<br>tap<br>→</div>
+          <div class="arrow">one<br>turn<br>→</div>
           <div class="col"><span class="lab">After</span><div class="mini" id="fig2b"></div><div class="strips" id="fig2bs"></div></div>
         </div>
       </div>
-      <p>Tap any tile and the four colors in its pinwheel each move one tile clockwise. The pinwheel still has one of each color, just in different places.</p>
-      <p><b>The letters never move.</b> Only the colors change, so one tap changes one letter in all four words at once.</p>
+      <p>Tap any tile to outline its pinwheel. Nothing changes yet, and the letter it controls in each word lights up in the boxes under the grid.</p>
+      <p>Tap the same pinwheel again and its four colors each move one tile clockwise. It still has one of each color, just in different places.</p>
+      <p><b>The letters never move.</b> Only the colors change, so one turn changes one letter in all four words at once.</p>
       <p>Keep turning pinwheels until all four boxes show real words. There is only one solution, and all four words fall into place at the same moment.</p>
     </section>
 
@@ -303,6 +307,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
       <h3>Controls</h3>
       <ul>
         <li><b>Hint</b> sets one pinwheel for you and stripes it.</li>
+        <li><b>Undo</b> takes back your last turn.</li>
         <li><b>Reset</b> puts the colors back where they started.</li>
       </ul>
     </section>
@@ -318,26 +323,28 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 
     <p class="note"><b>An actual secret code.</b> Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
 
+    <label class="opt"><input type="checkbox" id="quick"> Turn a pinwheel on the first tap (faster, no preview)</label>
     <label class="opt"><input type="checkbox" id="hideTheme"> Hide the theme until I tap it (harder)</label>
     <label class="opt"><input type="checkbox" id="shapes"> Add a shape to each color (helps if colors are hard to tell apart)</label>
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
+    <p class="ver">Version 45</p>
   </div>
 </dialog>
 
 <script>
 const BANK = {"4":[{"n":4,"g":"HDOWAYTUEEREEAKR","s":"0302","i":"0120","w":["HOUR","WEEK","YEAR","DATE"],"t":"Calendar"},{"n":4,"g":"JDSUAICCLKEUCKTB","s":"0311","i":"0203","w":["JACK","SUIT","CLUB","DECK"],"t":"Deck of cards"},{"n":4,"g":"ACRCOCUVBAOELNHE","s":"0200","i":"0310","w":["ARCH","CUBE","CONE","OVAL"],"t":"Shapes"},{"n":4,"g":"PCRRAOPOLPSLTAEY","s":"0301","i":"0233","w":["PROP","ROLE","PLAY","CAST"],"t":"On stage"},{"n":4,"g":"BALTWRRIOEGOTKAF","s":"0023","i":"0331","w":["BARK","TWIG","LEAF","ROOT"],"t":"Parts of a tree"},{"n":4,"g":"BDOLIKLKEBITALLE","s":"0110","i":"0033","w":["BIKE","DOLL","KITE","BALL"],"t":"Toy box"},{"n":4,"g":"ZFFINIONEVROUERE","s":"0132","i":"0231","w":["ZERO","FIVE","NINE","FOUR"],"t":"Numbers"},{"n":4,"g":"FHAKNNCHEEOINOTD","s":"0222","i":"0011","w":["FOOT","KNEE","HAND","CHIN"],"t":"Head to toe"},{"n":4,"g":"BBLEAUMALGMLOBWP","s":"0120","i":"0300","w":["BULB","BEAM","LAMP","GLOW"],"t":"Light"},{"n":4,"g":"WBBAAMULISKTNTET","s":"0312","i":"0002","w":["WALK","BASE","MITT","BUNT"],"t":"Baseball"},{"n":4,"g":"BSRIEANDCTUFUDGF","s":"0310","i":"0333","w":["BEAD","RING","CUFF","STUD"],"t":"Jewelry box"},{"n":4,"g":"RVMIHOEEERNDSESB","s":"0133","i":"0012","w":["REED","VINE","HERB","MOSS"],"t":"Greenery"},{"n":4,"g":"TDTICIEULCRAREDN","s":"0120","i":"0010","w":["TILE","DICE","TURN","CARD"],"t":"Game night"},{"n":4,"g":"CLOBHEGOAUALSRNT","s":"0332","i":"0231","w":["COAL","BURN","HEAT","LOGS"],"t":"Fireside"},{"n":4,"g":"SRHETAOFTIELKLEM","s":"0103","i":"0202","w":["SHOT","REEL","FILM","TAKE"],"t":"At the movies"},{"n":4,"g":"RVAIBOSGPLSELUTE","s":"0103","i":"0021","w":["RASP","VISE","GLUE","BOLT"],"t":"Workbench"},{"n":4,"g":"WHITUDAETGILENLY","s":"0300","i":"0321","w":["WIDE","TALL","TINY","HUGE"],"t":"Sizes"},{"n":4,"g":"YBWARKOOELHOWPLF","s":"0121","i":"0332","w":["YELP","BARK","WOOF","HOWL"],"t":"Dog talk"},{"n":4,"g":"BEPOEVFRELKAALMB","s":"0013","i":"0030","w":["BEEF","PORK","LAMB","VEAL"],"t":"Butcher shop"},{"n":4,"g":"SOGGCRULIAARMDLM","s":"0033","i":"0101","w":["SOUR","GLAD","CALM","GRIM"],"t":"Moods"},{"n":4,"g":"LAGMUMLEDUOCKBAT","s":"0020","i":"0001","w":["LAMB","MULE","GOAT","DUCK"],"t":"On the farm"},{"n":4,"g":"DLKOERARUKIENDGL","s":"0131","i":"0110","w":["DUKE","LORD","EARL","KING"],"t":"Royalty"},{"n":4,"g":"PKLLIWUMPEIMIAER","s":"0303","i":"0123","w":["PLUM","LIME","PEAR","KIWI"],"t":"Fruit bowl"},{"n":4,"g":"CMUPBLUOOLOGEMPT","s":"0330","i":"0213","w":["CLOG","PUMP","BOOT","MULE"],"t":"Footwear"},{"n":4,"g":"CROAORTBSRICANNE","s":"0210","i":"0221","w":["CORN","OATS","RICE","BRAN"],"t":"Grains"},{"n":4,"g":"SCOCSASHLAOPTRTE","s":"0332","i":"0203","w":["SHOP","CART","SALE","COST"],"t":"Shopping"},{"n":4,"g":"HTORCOOMFOATLNTE","s":"0100","i":"0202","w":["HOOF","TROT","MANE","COLT"],"t":"Horses"},{"n":4,"g":"SWOMCIIOLDLKANAE","s":"0201","i":"0010","w":["SODA","MILK","WINE","COLA"],"t":"Drinks"},{"n":4,"g":"CLAKOPVGEUELONDF","s":"0113","i":"0300","w":["COVE","LAKE","GULF","POND"],"t":"Bodies of water"},{"n":4,"g":"LBRMIEIPAKTFSSTE","s":"0233","i":"0011","w":["LIFT","MATS","BIKE","REPS"],"t":"At the gym"},{"n":4,"g":"PFAKGSIOCAOKLUSL","s":"0200","i":"0010","w":["PASS","KICK","FOUL","GOAL"],"t":"Soccer"},{"n":4,"g":"KBAEOLELEKETREAK","s":"0100","i":"0321","w":["KALE","BEET","LEEK","OKRA"],"t":"Vegetables"},{"n":4,"g":"CJFUROAISNYATEHE","s":"0123","i":"0211","w":["CASE","JURY","FINE","OATH"],"t":"In court"},{"n":4,"g":"NRTOEAFWRTEOEDDG","s":"0311","i":"0231","w":["NEWT","TOAD","FROG","REED"],"t":"Pond life"},{"n":4,"g":"BMEMTOASAMSSOILK","s":"0330","i":"0122","w":["BOSS","MAIL","TASK","MEMO"],"t":"Office"},{"n":4,"g":"BALWECSTEAESTKFT","s":"0020","i":"0233","w":["BACK","WEST","LEFT","EAST"],"t":"Which way"},{"n":4,"g":"CBBIALCSOHAINKLN","s":"0311","i":"0031","w":["CASH","BILL","COIN","BANK"],"t":"Money"},{"n":4,"g":"DEANALTECAFOLLLD","s":"0010","i":"0322","w":["DEAL","ANTE","FOLD","CALL"],"t":"At the poker table"},{"n":4,"g":"SOCBVECLEKSTTOAT","s":"0001","i":"0203","w":["SOCK","BELT","COAT","VEST"],"t":"Clothing"},{"n":4,"g":"TGBPRALUINEAEKLY","s":"0232","i":"0220","w":["TEAL","PINK","GRAY","BLUE"],"t":"Colors"},{"n":4,"g":"LIBSITLEPNAGEKOG","s":"0021","i":"0112","w":["LINK","SITE","BLOG","PAGE"],"t":"On the web"},{"n":4,"g":"DROSPRHUINAPTFYT","s":"0200","i":"0003","w":["DORY","SHIP","RAFT","PUNT"],"t":"Boats"},{"n":4,"g":"PPECAARKCSAASVGE","s":"0300","i":"0233","w":["PEAK","CRAG","CAVE","PASS"],"t":"In the mountains"},{"n":4,"g":"DRCAIALLTIEXNGLT","s":"0310","i":"0222","w":["DIAL","CALL","TEXT","RING"],"t":"On the phone"},{"n":4,"g":"CALTARKROOTLLEAF","s":"0023","i":"0232","w":["CAKE","TART","LOAF","ROLL"],"t":"Bakery"},{"n":4,"g":"FOBSINOKORVENKWL","s":"0021","i":"0112","w":["FORK","SINK","BOWL","OVEN"],"t":"In the kitchen"},{"n":4,"g":"CMPHELIUSROARSWW","s":"0230","i":"0110","w":["CLAW","HISS","MEOW","PURR"],"t":"Cat talk"},{"n":4,"g":"TTOTARXVIIUSAIPR","s":"0220","i":"0321","w":["TRIP","TAXI","TOUR","VISA"],"t":"Travel"},{"n":4,"g":"IRGOONLDZILENCAD","s":"0010","i":"0123","w":["IRON","GOLD","LEAD","ZINC"],"t":"Metals"},{"n":4,"g":"CWASOOFHTARRDLDM","s":"0220","i":"0121","w":["COLD","SOFT","WARM","HARD"],"t":"How it feels"},{"n":4,"g":"CHPUHOFOTTILREPE","s":"0212","i":"0313","w":["CHIP","PUTT","HOLE","FORE"],"t":"On the golf course"},{"n":4,"g":"HWASDWROAWVNEEKN","s":"0201","i":"0223","w":["HAWK","SWAN","WREN","DOVE"],"t":"Birds"},{"n":4,"g":"DHOROHOTRINROODE","s":"0113","i":"0221","w":["DOOR","HORN","TIRE","HOOD"],"t":"Car parts"},{"n":4,"g":"WSEAOLLDFBEEEARR","s":"0110","i":"0330","w":["WOLF","SEAL","DEER","BEAR"],"t":"Wildlife"},{"n":4,"g":"SBBATOIRCHKOILEP","s":"0313","i":"0010","w":["STIR","BAKE","CHOP","BOIL"],"t":"Cooking"},{"n":4,"g":"LPUCULIYBMSNXONA","s":"0223","i":"0211","w":["LION","CUBS","PUMA","LYNX"],"t":"Wild cats"},{"n":4,"g":"HTDRAUORBPUOBAME","s":"0311","i":"0230","w":["HARP","DRUM","OBOE","TUBA"],"t":"In the orchestra"},{"n":4,"g":"IRLOFSERRIISLEYN","s":"0131","i":"0011","w":["IRIS","ROSE","FERN","LILY"],"t":"Florist"},{"n":4,"g":"KNDAIYTRASNERNAM","s":"0013","i":"0201","w":["KNIT","DARN","SEAM","YARN"],"t":"Sewing box"},{"n":4,"g":"TWNCLAOIIALODEYL","s":"0322","i":"0133","w":["TILE","CLAY","NAIL","WOOD"],"t":"Builder's yard"},{"n":4,"g":"HDOOALRRLWOOALLF","s":"0110","i":"0020","w":["HALL","DOOR","ROOF","WALL"],"t":"Around the house"},{"n":4,"g":"SLFEILWLOKAOCETL","s":"0311","i":"0023","w":["SILK","FELT","WOOL","LACE"],"t":"Fabrics"},{"n":4,"g":"DYAREOSNTAWPSZEN","s":"0220","i":"0321","w":["DOZE","REST","YAWN","NAPS"],"t":"Sleepy"},{"n":4,"g":"TCBBOHOUALNAPDMG","s":"0320","i":"0230","w":["THUD","BOOM","BANG","CLAP"],"t":"Loud noises"},{"n":4,"g":"ROONUJBAYPXADEYL","s":"0213","i":"0301","w":["RUBY","ONYX","OPAL","JADE"],"t":"Gemstones"},{"n":4,"g":"TCWCOARVUMRIELMB","s":"0233","i":"0200","w":["TRIM","CURL","COMB","WAVE"],"t":"Hair salon"},{"n":4,"g":"GBELELSEARTAIRET","s":"0111","i":"0312","w":["GEAR","BELL","SEAT","TIRE"],"t":"Bicycle parts"},{"n":4,"g":"CRWTANEIOILSEWNG","s":"0023","i":"0302","w":["CREW","TAIL","WING","NOSE"],"t":"Airplane"},{"n":4,"g":"AKTWIDWIIFUNNETS","s":"0232","i":"0203","w":["AUNT","WIFE","KIDS","TWIN"],"t":"Family"},{"n":4,"g":"CBFDAYODILTTEEAE","s":"0323","i":"0222","w":["CODE","DATA","FILE","BYTE"],"t":"Computing"},{"n":4,"g":"BFOAASSOTMHAUDSP","s":"0112","i":"0233","w":["BATH","FOAM","SOAP","SUDS"],"t":"Bath time"},{"n":4,"g":"RHOBLEAEIONLKITE","s":"0330","i":"0113","w":["REEL","BAIT","LINE","HOOK"],"t":"Gone fishing"},{"n":4,"g":"WERAESDKEHEOEDSE","s":"0013","i":"0223","w":["WEED","RAKE","HOSE","SEED"],"t":"In the garden"},{"n":4,"g":"GWMONAFLTHASEATP","s":"0212","i":"0002","w":["GNAT","MOTH","WASP","FLEA"],"t":"Insects"},{"n":4,"g":"RETSUWERAIFVEFDE","s":"0023","i":"0213","w":["REEF","SURF","TIDE","WAVE"],"t":"At the shore"},{"n":4,"g":"TEDESTSKQUEXIZAM","s":"0010","i":"0032","w":["TEST","DESK","EXAM","QUIZ"],"t":"School"},{"n":4,"g":"TOELARLNAXEMPLIT","s":"0023","i":"0113","w":["TOLL","LANE","EXIT","RAMP"],"t":"On the highway"},{"n":4,"g":"BDAUSAOLSESTLTOO","s":"0102","i":"0213","w":["BASS","DUET","ALTO","SOLO"],"t":"Choir"},{"n":4,"g":"HARSNIOWWIANDLIN","s":"0020","i":"0212","w":["HAIL","SNOW","RAIN","WIND"],"t":"Weather report"},{"n":4,"g":"KPAMROWIOANGNTEK","s":"0332","i":"0321","w":["KING","MATE","ROOK","PAWN"],"t":"Chess"},{"n":4,"g":"SCATBROLASUEPNAS","s":"0333","i":"0113","w":["SOLE","TUNA","BASS","CARP"],"t":"Fish"},{"n":4,"g":"TLFIEHNIRAEKKETE","s":"0213","i":"0300","w":["TENT","FIRE","LAKE","HIKE"],"t":"Camping trip"},{"n":4,"g":"SHHOLOIFPLOKOATG","s":"0103","i":"0200","w":["SHIP","HOOK","FLAG","LOOT"],"t":"Pirates"},{"n":4,"g":"TUBNSOOTENAETENG","s":"0031","i":"0321","w":["TUNE","NOTE","SONG","BEAT"],"t":"Music"},{"n":4,"g":"MKEGWAEOLAATPTEL","s":"0332","i":"0031","w":["MOAT","GATE","WALL","KEEP"],"t":"Castle"},{"n":4,"g":"MASASKHIELTELMEL","s":"0012","i":"0000","w":["MAST","SAIL","KEEL","HELM"],"t":"Under sail"},{"n":4,"g":"BTFETOOYLPXDNTTE","s":"0133","i":"0330","w":["BOLD","TEXT","TYPE","FONT"],"t":"Typesetting"},{"n":4,"g":"PIMHOBNPRASEWTLT","s":"0023","i":"0302","w":["PINT","HOPS","MALT","BREW"],"t":"At the brewery"},{"n":4,"g":"PHEPWORARLGEOOTD","s":"0332","i":"0020","w":["PAGE","PLOT","WORD","HERO"],"t":"Storybook"},{"n":4,"g":"BHBOOEKOLRUINLGT","s":"0120","i":"0101","w":["BELL","HOOK","BOUT","RING"],"t":"Boxing"},{"n":4,"g":"NMMSTAOOOVARSARN","s":"0321","i":"0202","w":["NOVA","STAR","MOON","MARS"],"t":"Night sky"}],"5":[{"n":5,"g":"TWRANUSDWTAD*REGRDEODLLEL","s":"010121","i":"003321","w":["TRUDGE","WANDER","STROLL","WADDLE"],"t":"Walks"},{"n":5,"g":"CAASPLWAMHOE*NALNEWUDNUTT","s":"030022","i":"013111","w":["CASHEW","PEANUT","WALNUT","ALMOND"],"t":"Nuts"},{"n":5,"g":"MTELRSONORAH*DEYYBLETTHAM","s":"010033","i":"033100","w":["MELODY","TREBLE","RHYTHM","SONATA"],"t":"Music theory"},{"n":5,"g":"MATSARURLLMI*INBNMONOTNOW","s":"003133","i":"011312","w":["MARLIN","SALMON","MINNOW","TURBOT"],"t":"Fish"},{"n":5,"g":"MJBOAWGADGUA*ALNKERRUEYSR","s":"012012","i":"022130","w":["MONKEY","JAGUAR","BADGER","WALRUS"],"t":"Wild animals"},{"n":5,"g":"TKPGETETERAA*TPOEELLETERR","s":"013231","i":"010332","w":["TEAPOT","KETTLE","GRATER","PEELER"],"t":"Kitchen drawer"},{"n":5,"g":"BIWNCRCUALOL*EDDIMGETETTE","s":"023220","i":"001201","w":["BUDGET","CREDIT","INCOME","WALLET"],"t":"Money matters"},{"n":5,"g":"DLAUNITCCANG*NKHHUYETTERR","s":"011121","i":"022122","w":["DINGHY","LAUNCH","TANKER","CUTTER"],"t":"Boats"},{"n":5,"g":"YOOMEGCRCLUE*EERTRTPEALES","s":"001122","i":"030101","w":["YOGURT","OMELET","CREPES","CEREAL"],"t":"Breakfast"},{"n":5,"g":"HAMASBAREIAC*RBIOLNRAORON","s":"003313","i":"001130","w":["HARBOR","SAILOR","BEACON","MARINA"],"t":"Harbor"},{"n":5,"g":"MINRADAUUSBI*RSUERGOTNONO","s":"022303","i":"003203","w":["MAROON","AUBURN","INDIGO","RUSSET"],"t":"Shades"},{"n":5,"g":"EASCCRNCIORC*POMTEDORESTY","s":"031200","i":"023300","w":["ENCORE","SCRIPT","COMEDY","ACTORS"],"t":"Theater"},{"n":5,"g":"CFOVETLETOEM*NLUSVELCEITN","s":"030133","i":"010212","w":["COTTON","VELVET","MUSLIN","FLEECE"],"t":"Fabrics"},{"n":5,"g":"MPLGROCEATLA*KEAOXNETRETY","s":"033210","i":"002211","w":["METEOR","ROCKET","GALAXY","PLANET"],"t":"Outer space"},{"n":5,"g":"HOMBMULUTTEL*MABBLBEERRLE","s":"002301","i":"010322","w":["HOLLER","MUTTER","MUMBLE","BABBLE"],"t":"Ways to speak"},{"n":5,"g":"DELSHUSQBORW*EEERGEUZEALL","s":"000122","i":"003203","w":["DELUGE","SHOWER","SQUALL","BREEZE"],"t":"Wet weather"},{"n":5,"g":"DLAWYOBUTTCE*ALTROREILORR","s":"011122","i":"002201","w":["DOCTOR","LAWYER","BUTLER","TAILOR"],"t":"Professions"},{"n":5,"g":"MIFCROIZESTT*ICNLELIGEHNE","s":"021201","i":"013212","w":["MITTEN","FROZEN","ICICLE","SLEIGH"],"t":"Winter"},{"n":5,"g":"LPOGCAELNARU*TLANAGGERREY","s":"020311","i":"023112","w":["LOUNGE","CELLAR","PANTRY","GARAGE"],"t":"Rooms"},{"n":5,"g":"SBCOPOEODTLT*LELAGILEEREE","s":"032201","i":"023232","w":["SETTER","POODLE","COLLIE","BEAGLE"],"t":"Dog breeds"},{"n":5,"g":"SEPMNUIOZZGL*LTEUMITVAHEE","s":"012313","i":"020111","w":["SLEUTH","ENIGMA","PUZZLE","MOTIVE"],"t":"Mystery"},{"n":5,"g":"MMODEIMSECCE*NOADEUNNDTET","s":"022123","i":"030311","w":["MINUTE","DECADE","MOMENT","SECOND"],"t":"Time"},{"n":5,"g":"CCBRNIOCOOKB*NPZEPAERLTLE","s":"032221","i":"032100","w":["COBALT","NICKEL","BRONZE","COPPER"],"t":"Metals"},{"n":5,"g":"LBABRNKLAEOO*NGOCCKELHTET","s":"012322","i":"023100","w":["LOCKET","BROOCH","ANKLET","BANGLE"],"t":"Jewelry"},{"n":5,"g":"CMPUTAVSEAUE*LARSTACELNEM","s":"023212","i":"033021","w":["CASTLE","TAVERN","MUSEUM","PALACE"],"t":"Buildings"},{"n":5,"g":"SUMMFOERARVA*MEISTINETDOW","s":"000223","i":"010320","w":["SUMMIT","FOREST","MEADOW","RAVINE"],"t":"On the trail"},{"n":5,"g":"BSHECSRORACN*ODTCRGYYNACH","s":"033331","i":"003322","w":["BRANDY","COGNAC","SCOTCH","SHERRY"],"t":"Bar cart"},{"n":5,"g":"TPPIFAGUARER*LRCOOKOTENYN","s":"023220","i":"001032","w":["TURKEY","FALCON","PIGEON","PARROT"],"t":"Birds"},{"n":5,"g":"SSACLOOCOWAB*DODONLRREALY","s":"011223","i":"021022","w":["SADDLE","SALOON","COWBOY","CORRAL"],"t":"Wild West"},{"n":5,"g":"YPSEVILULVRI*ELOPOLERLTWE","s":"023032","i":"011112","w":["YELLOW","VIOLET","PURPLE","SILVER"],"t":"Colors"},{"n":5,"g":"GTRBREEACLLH*UGGNAAGDENEO","s":"020313","i":"013112","w":["GRUNGE","REGGAE","TECHNO","BALLAD"],"t":"Music genres"},{"n":5,"g":"SPGSHACURRTI*LURLRLNYETOP","s":"002331","i":"013123","w":["SPRINT","HURTLE","GALLOP","SCURRY"],"t":"Go fast"},{"n":5,"g":"CTIRWNRESIAA*EBTNBODNHLEL","s":"022311","i":"003123","w":["CANDLE","WREATH","TINSEL","RIBBON"],"t":"Festive"},{"n":5,"g":"SLTRGARGEAPY*ISEDEOASROMN","s":"020302","i":"031120","w":["STREAM","GEYSER","LAGOON","RAPIDS"],"t":"Water features"},{"n":5,"g":"KRZGOSPMOBAK*HIBILENIENNX","s":"001321","i":"013221","w":["KRAKEN","ZOMBIE","SPHINX","GOBLIN"],"t":"Monsters"},{"n":5,"g":"AVESUNSBRBIT*UUDRBERGEEET","s":"000123","i":"023013","w":["AVENUE","SUBURB","STREET","BRIDGE"],"t":"City map"},{"n":5,"g":"DOCGPIGNALNA*EKTEDTLEYTER","s":"003210","i":"011231","w":["DONKEY","PIGLET","GANDER","CATTLE"],"t":"Barnyard"},{"n":5,"g":"MAEUTMSEDEIQ*OHIORRUTOERL","s":"010123","i":"031311","w":["MEMOIR","AUTHOR","SEQUEL","EDITOR"],"t":"Books"},{"n":5,"g":"WIGRUTSANTDE*TFATORIRWSER","s":"001232","i":"002311","w":["WINDOW","GUTTER","RAFTER","STAIRS"],"t":"Parts of a house"},{"n":5,"g":"SMERRCOUERSM*VUTEEORRORRY","s":"020013","i":"003211","w":["SERVER","ROUTER","MEMORY","CURSOR"],"t":"Hardware"},{"n":5,"g":"PBCOHERRRAPA*ANGYANANAAYE","s":"031211","i":"003213","w":["PAPAYA","CHERRY","ORANGE","BANANA"],"t":"Fruit"},{"n":5,"g":"ALUDCAETHMEG*MPSUSNISIREE","s":"000223","i":"031202","w":["ALUMNI","CAMPUS","DEGREE","THESIS"],"t":"University"},{"n":5,"g":"BUQUMILINLET*BARLGLEYUROA","s":"002212","i":"001022","w":["BULGUR","MILLET","QUINOA","BARLEY"],"t":"Grains"},{"n":5,"g":"RBCUSRADROET*EALTCKEUEREE","s":"032322","i":"012110","w":["ROCKER","SETTEE","CRADLE","BUREAU"],"t":"Furniture"},{"n":5,"g":"OCSBISPRQHCL*EUOLANERRGEE","s":"012021","i":"000102","w":["OBLONG","CIRCLE","SPHERE","SQUARE"],"t":"Shapes"},{"n":5,"g":"CZORDRAINCNH*HOLCUIIDIASA","s":"023012","i":"031301","w":["CROCUS","DAHLIA","ZINNIA","ORCHID"],"t":"Flowers"},{"n":5,"g":"SEELARTEJDEN*OYCEHEFERYUL","s":"001111","i":"012303","w":["SERENE","ELATED","JOYFUL","CHEERY"],"t":"Good moods"},{"n":5,"g":"NGPGINGEARLU*ITMEEPPEGRRC","s":"013211","i":"001223","w":["NUTMEG","GINGER","GARLIC","PEPPER"],"t":"Spice rack"},{"n":5,"g":"CSUPIAMCNSIP*NUCRFTAERERN","s":"022101","i":"020120","w":["CAMPER","PICNIC","SUNTAN","SURFER"],"t":"Summer"},{"n":5,"g":"CRHTIUVCIKES*OOYSATTGEEEL","s":"002131","i":"003220","w":["CRUISE","TICKET","HOSTEL","VOYAGE"],"t":"Travel"},{"n":5,"g":"TIUGURTANLPL*IAEYTZAHORND","s":"010101","i":"020032","w":["TURTLE","IGUANA","LIZARD","PYTHON"],"t":"Reptiles"},{"n":5,"g":"CCYORMGBVUIO*NEATILTLIANR","s":"010120","i":"001302","w":["CYMBAL","CORNET","GUITAR","VIOLIN"],"t":"Instruments"},{"n":5,"g":"CSAMCTUERADI*INACTEMOIOAN","s":"030030","i":"021112","w":["CAMERA","CINEMA","ACTION","STUDIO"],"t":"Movie set"},{"n":5,"g":"TTHMFONIUSCR*GNGELOAERUTE","s":"020321","i":"003003","w":["THROAT","FINGER","TONGUE","MUSCLE"],"t":"Anatomy"},{"n":5,"g":"NCSMOIEUSSIP*TOHTHEEENWRR","s":"012301","i":"010022","w":["NEPHEW","COUSIN","SISTER","MOTHER"],"t":"Relatives"},{"n":5,"g":"MBIENOTARSHO*TRDBJIYENCTG","s":"011001","i":"010233","w":["METHOD","BINARY","STRING","OBJECT"],"t":"Programming"},{"n":5,"g":"RHAJCEELCRSL*EEAMKTEYSETT","s":"020332","i":"033333","w":["RACKET","CLEATS","HELMET","JERSEY"],"t":"Sporting gear"},{"n":5,"g":"DSRPIESSOINW*LTSLOAOZYOEW","s":"010231","i":"003131","w":["DROWSY","SIESTA","PILLOW","SNOOZE"],"t":"Bedtime"},{"n":5,"g":"PGANCAHDRDLA*OUDEDLELEYRR","s":"031110","i":"001023","w":["PADDLE","ANCHOR","RUDDER","GALLEY"],"t":"On a boat"},{"n":5,"g":"CPUBBUNAIDRT*KDDIITEREERE","s":"033210","i":"002213","w":["CADDIE","BUNKER","BIRDIE","PUTTER"],"t":"Golf"},{"n":5,"g":"CMBOARREASKK*UFPOEUTNENDT","s":"012013","i":"020130","w":["COUPON","MARKET","BASKET","REFUND"],"t":"Shopping"},{"n":5,"g":"DCAVAESNLILE*SLYAEYONDRTN","s":"022102","i":"023301","w":["DESERT","VALLEY","CANYON","ISLAND"],"t":"Landscapes"},{"n":5,"g":"MBCHEEATLORN*NTIICEADSEAT","s":"013201","i":"013022","w":["MANTIS","BEETLE","HORNET","CICADA"],"t":"Insects"},{"n":5,"g":"CECLRTERADIU*SRNIARHPRYOT","s":"002000","i":"013202","w":["CELERY","RADISH","CARROT","TURNIP"],"t":"Vegetables"},{"n":5,"g":"GFLLRHAIGIHN*DUGNWERTAAYR","s":"030323","i":"003221","w":["GLIDER","RUNWAY","HANGAR","FLIGHT"],"t":"Aviation"},{"n":5,"g":"HECOXLAIUYIR*GMBODEIONNNE","s":"003130","i":"002210","w":["HELIUM","OXYGEN","IODINE","CARBON"],"t":"Elements"},{"n":5,"g":"MCUOPAWOFAFS*FTRKFYLEIINE","s":"020232","i":"033113","w":["MUFFIN","PASTRY","COOKIE","WAFFLE"],"t":"Baked goods"},{"n":5,"g":"HSJOBAALCKNO*DDOUEISTAEEL","s":"023021","i":"012123","w":["HOODIE","BLOUSE","SANDAL","JACKET"],"t":"Wardrobe"},{"n":5,"g":"SCCRLOAPFEIO*EPLNTEORDEPR","s":"030013","i":"032121","w":["SCREEN","LAPTOP","FOLDER","COPIER"],"t":"Office"},{"n":5,"g":"FECBELUTUNGI*MPENNDERERCH","s":"002322","i":"001300","w":["FENDER","ENGINE","CLUTCH","BUMPER"],"t":"Car parts"},{"n":5,"g":"SSHFAOPMIRRO*WUCETENORGRE","s":"020123","i":"031012","w":["SHOWER","FAUCET","SPONGE","MIRROR"],"t":"Bathroom"},{"n":5,"g":"SISTUDSWINNE*IGNINLTALGCH","s":"002132","i":"013032","w":["SIDING","TUNNEL","SWITCH","SIGNAL"],"t":"Railway"},{"n":5,"g":"LELGORERACSC*SEDKEONERSSS","s":"001323","i":"012120","w":["LESSON","LOCKER","RECESS","GRADES"],"t":"At school"},{"n":5,"g":"CVMAEROACDIT*TSIRNUEIORXS","s":"013302","i":"001322","w":["COSINE","VECTOR","RADIUS","MATRIX"],"t":"Math"},{"n":5,"g":"ZQJUAGSPAIRC*RNEOARNTEZRT","s":"031311","i":"012233","w":["ZIRCON","JASPER","GARNET","QUARTZ"],"t":"Gems"},{"n":5,"g":"PHLIAWCMRHEE*IMRENSRCSEHL","s":"010021","i":"021022","w":["PLIERS","HAMMER","CHISEL","WRENCH"],"t":"Toolbox"},{"n":5,"g":"PSWPROPUCAEL*LWAILNULORWT","s":"012101","i":"023213","w":["POPLAR","SPRUCE","WALNUT","WILLOW"],"t":"Trees"},{"n":5,"g":"BBFUEUANSAMP*RNERKNEELRLE","s":"013013","i":"020223","w":["BURNER","BEAKER","SAMPLE","FUNNEL"],"t":"Science lab"},{"n":5,"g":"GUFTCGIGIATC*TKELFAWREGLE","s":"000322","i":"031300","w":["GUFFAW","CACKLE","GIGGLE","TITTER"],"t":"Laughs"},{"n":5,"g":"PFCARSAKEETS*NSTVECLACOSH","s":"013302","i":"000211","w":["PASTEL","FRESCO","SKETCH","CANVAS"],"t":"Art studio"},{"n":5,"g":"SSIBMMRERAIZ*ISZRELDUECEE","s":"011221","i":"011113","w":["SIZZLE","SIMMER","BRAISE","REDUCE"],"t":"In the pan"},{"n":5,"g":"SACHPIETUCKE*LRKLEAEYMISE","s":"002223","i":"011033","w":["SALAMI","PICKLE","CHEESE","TURKEY"],"t":"Deli counter"},{"n":5,"g":"SPHEBRAUIDCG*EDAREHTSSERE","s":"003202","i":"023333","w":["SPADES","BRIDGE","EUCHRE","HEARTS"],"t":"Card games"},{"n":5,"g":"CDRAKNGIWIGA*OZHTASRDTLEN","s":"022221","i":"012233","w":["CASTLE","KNIGHT","DRAGON","WIZARD"],"t":"Fairy tale"},{"n":5,"g":"BLPOMUPCKARP*RSEATBLTTELE","s":"003030","i":"021011","w":["BLOCKS","MARBLE","RATTLE","PUPPET"],"t":"Toy box"},{"n":5,"g":"SSTHGRELOOHA*ORVWEVELESSL","s":"023001","i":"023333","w":["SHEARS","GLOVES","SHOVEL","TROWEL"],"t":"Gardening"},{"n":5,"g":"CMEPARRARAKE*ENYCSEOIRNLR","s":"012300","i":"031323","w":["CRAYON","MARKER","ERASER","PENCIL"],"t":"School supplies"},{"n":5,"g":"HOCKBTOESXEN*INNYOIGSCCER","s":"000010","i":"023233","w":["HOCKEY","BOXING","SOCCER","TENNIS"],"t":"Sports"},{"n":5,"g":"MINSBBUEALHI*LEMMOLTYTERO","s":"000300","i":"023122","w":["MINUET","BALLET","BOLERO","SHIMMY"],"t":"Dances"},{"n":5,"g":"SSMOUUNTSDAS*OOFREFEBETEE","s":"031102","i":"020200","w":["SUNDAE","MOUSSE","TOFFEE","SORBET"],"t":"Dessert"},{"n":5,"g":"DSBINUGONUIT*NRAITTEKETGR","s":"032100","i":"003121","w":["DUGOUT","INNING","BATTER","STRIKE"],"t":"Baseball"},{"n":5,"g":"MOUSYTUSSHRS*TTERLERLIMEP","s":"010032","i":"033120","w":["MUSSEL","OYSTER","SHRIMP","TURTLE"],"t":"Sea creatures"}],"6":[{"n":6,"g":"TANTVEGERAMIULIBEOURIRQNUOEIRGSENINE","s":"000310121","i":"033033030","w":["TANGERINE","VERMILION","AUBERGINE","TURQUOISE"],"t":"Colors"},{"n":6,"g":"WMCOOAAGSTUERNATSSRFTALLLIAALNINNSED","s":"031312102","i":"033213011","w":["WATERFALL","COASTLINE","GRASSLAND","MOUNTAINS"],"t":"Landscapes"},{"n":6,"g":"BTWRRESBAIIDLTMLIAATHLILIORNGNTDONSN","s":"021123323","i":"002000210","w":["BILLIARDS","WRESTLING","TRIATHLON","BADMINTON"],"t":"Sports"},{"n":6,"g":"FRFUVAANDCMREBIUTEGAWIOROGBKLINSESNG","s":"003313231","i":"013101310","w":["FRAMEWORK","VARIABLES","DEBUGGING","FUNCTIONS"],"t":"Writing code"},{"n":6,"g":"GDRETADLRACHSMREAYHIUTEHOUNNVDEIANRD","s":"013331023","i":"011302130","w":["GREYHOUND","DALMATIAN","DACHSHUND","RETRIEVER"],"t":"Dog breeds"},{"n":6,"g":"OTRRVICGOHUEMPSLUTIRETINAIRTAIERSSTT","s":"033012100","i":"031333113","w":["ORCHESTRA","VIOLINIST","GUITARIST","TRUMPETER"],"t":"In concert"},{"n":6,"g":"LIABPRDERARCOFRHITIESETESCCTANOTIRVE","s":"001032000","i":"003101333","w":["LIBRARIAN","ARCHITECT","DETECTIVE","PROFESSOR"],"t":"Professions"},{"n":6,"g":"MAMOACALRMNEELTOHAYCIHNISTTOSNEEANTS","s":"003320122","i":"023111131","w":["MALACHITE","CARNELIAN","AMETHYSTS","MOONSTONE"],"t":"Gems"},{"n":6,"g":"STEANSHAVISITPWGARREMBOCAKSHIRDPATOR","s":"000022221","i":"030331032","w":["STEAMSHIP","SHIPWRECK","NAVIGATOR","STARBOARD"],"t":"At sea"},{"n":6,"g":"AORMRPOACDRROCOILCDANUPINIGEULELTAON","s":"020020303","i":"010103231","w":["ARMADILLO","PORCUPINE","ORANGUTAN","CROCODILE"],"t":"At the zoo"},{"n":6,"g":"FVIRMAEQUEGRADNNEITATBISMIRATIONOCYN","s":"022010000","i":"032221133","w":["FREQUENCY","MAGNETISM","VIBRATION","RADIATION"],"t":"Physics"},{"n":6,"g":"SBAAJRNGEWLERLLYOFRIADCFFUSDISIAHSHH","s":"011232302","i":"011133010","w":["SWORDFISH","BARRACUDA","ANGELFISH","JELLYFISH"],"t":"Under the sea"},{"n":6,"g":"SEAPMDAJRIPERAGCOELDICTORNCIAVPAEHTE","s":"001301303","i":"032210000","w":["SEMICOLON","ADJECTIVE","PREDICATE","PARAGRAPH"],"t":"Grammar"},{"n":6,"g":"TNTBREELEPWOSEALPAEGPHEROADCAPSNETHR","s":"021331113","i":"022121312","w":["TELEGRAPH","TELEPHONE","NEWSPAPER","BROADCAST"],"t":"Spreading the news"},{"n":6,"g":"SBLACCHOKRJOPLIOTASCAOTICSCSREKWORDH","s":"033332310","i":"013121121","w":["SOLITAIRE","CROSSWORD","HOPSCOTCH","BLACKJACK"],"t":"Play time"},{"n":6,"g":"MAAYDNITSVTRAMAETNEGREDIOTIUNIEERSSE","s":"021023021","i":"000131302","w":["MYSTERIES","ANIMATION","ADVENTURE","TRAGEDIES"],"t":"Genres"},{"n":6,"g":"SCCSGTOUIHERADCPKRBYEBBBOOOOOOOKKOKK","s":"030122233","i":"001201101","w":["SCRAPBOOK","STORYBOOK","GUIDEBOOK","CHECKBOOK"],"t":"By the book"},{"n":6,"g":"CHGOUUPSEWATLOCEHCWKOWORORSSWKORRKKK","s":"013131112","i":"002303200","w":["CLOCKWORK","HOUSEWORK","PATCHWORK","GUESSWORK"],"t":"Hard at work"},{"n":6,"g":"CPWLAAREAHPAATHOERDTYMERNAHUOUSLSEET","s":"031321310","i":"010010333","w":["CATHEDRAL","WAREHOUSE","APARTMENT","PLAYHOUSE"],"t":"Buildings"},{"n":6,"g":"KIMMIKELGLILAHOELIWAOGMERATTREMTSRTZ","s":"002330231","i":"033223133","w":["KILOMETER","KILOWATTS","MEGAHERTZ","MILLIGRAM"],"t":"Units"},{"n":6,"g":"RIVEVEEMRRBGAARHEERNKSEDHGELNRANDOWS","s":"000113101","i":"011111033","w":["RIVERBANK","EVERGREEN","HEDGEROWS","MARSHLAND"],"t":"Countryside"},{"n":6,"g":"CAHLLIAGTWOLMAETLOAVREAREONRNITULNAE","s":"010111320","i":"021011111","w":["CHAMELEON","ALLIGATOR","WOLVERINE","TARANTULA"],"t":"Wild things"},{"n":6,"g":"SATPESSAATRLETSCEEOCNLOLISHAPIETUEPT","s":"023031023","i":"023320331","w":["SPACESHIP","SATELLITE","ASTRONAUT","TELESCOPE"],"t":"Space age"},{"n":6,"g":"MGUEHACSAPAAAMGTBUBARMLOLGLHEETSETIR","s":"011023133","i":"031311202","w":["MEATBALLS","GUACAMOLE","HAMBURGER","SPAGHETTI"],"t":"Dinner"},{"n":6,"g":"STLIAIPOHMLEADTLELLILIIGHIGTGHGHHTTT","s":"013310230","i":"000113110","w":["SPOTLIGHT","TAILLIGHT","HEADLIGHT","LIMELIGHT"],"t":"Light endings"},{"n":6,"g":"CLDIACSSHBPAOUABOARFBRRDROBOADDRADRD","s":"003033333","i":"012213303","w":["CLIPBOARD","CARDBOARD","SURFBOARD","DASHBOARD"],"t":"All aboard"},{"n":6,"g":"ALBLGPAOABCRLKTDATFIRBROIINDSRDSGECH","s":"003322301","i":"013133332","w":["ALBATROSS","PARTRIDGE","GOLDFINCH","BLACKBIRD"],"t":"Birds"},{"n":6,"g":"CAFCLTEXTEABOPOSSKRTEISNCRRIPALIAOOM","s":"000221101","i":"031121031","w":["CAFETERIA","TEXTBOOKS","CLASSROOM","PRINCIPAL"],"t":"School days"},{"n":6,"g":"PDIRIAESKARYRRAOCOPGCILKABLNEETHUTEE","s":"022223300","i":"033303030","w":["PARACHUTE","AEROPLANE","DIRIGIBLE","SKYROCKET"],"t":"Up in the air"},{"n":6,"g":"TPINRAASNPENBGCEERTAEIRAINPRPNLEERYE","s":"033211312","i":"010030221","w":["TANGERINE","RASPBERRY","NECTARINE","PINEAPPLE"],"t":"Fruit"},{"n":6,"g":"WBFOOORKBOTSISTOOKEDNEBOLOCSHEARLDHF","s":"021010021","i":"031221212","w":["WORKBENCH","FOOTSTOOL","BOOKSHELF","SIDEBOARD"],"t":"Furniture"},{"n":6,"g":"DWATISUNNITRCAOCGKASRGEHETATUIGOSWNT","s":"011210331","i":"031101213","w":["DUNGAREES","WAISTCOAT","TRACKSUIT","NIGHTGOWN"],"t":"Wardrobe"},{"n":6,"g":"RSCMEOLHLOEDILAHREROAQACAMRSUTEALYRA","s":"013223223","i":"003331012","w":["REHEARSAL","SOLILOQUY","MELODRAMA","CHARACTER"],"t":"Theater"},{"n":6,"g":"FOTROLTERIDAINNILITUDTCEEEGGREITNYCE","s":"001011101","i":"023032022","w":["FORTITUDE","TOLERANCE","DILIGENCE","INTEGRITY"],"t":"Virtues"},{"n":6,"g":"IPRABLGRONOTECOAERDRFSIBATNACSOERHMD","s":"033122201","i":"030213103","w":["INTERFACE","ALGORITHM","BROADBAND","PROCESSOR"],"t":"Computing"},{"n":6,"g":"CBFATORMRHEOATHULEOSUHOUBUHSOUSESEEE","s":"012232321","i":"020120311","w":["CLUBHOUSE","BOATHOUSE","FARMHOUSE","TREEHOUSE"],"t":"Full house"},{"n":6,"g":"CODBURABCGKONRFMLBOUATLTEERBYFLCHYEE","s":"001223011","i":"010321321","w":["COCKROACH","DRAGONFLY","BUMBLEBEE","BUTTERFLY"],"t":"Insects"},{"n":6,"g":"MPMAPLAGNNUGOTAETSANSOIUNEISIUSEUMMM","s":"023310033","i":"030230013","w":["MAGNESIUM","PLUTONIUM","POTASSIUM","MANGANESE"],"t":"Elements"},{"n":6,"g":"FYEAOSFRTTESONTIRMGEEDTHTRNIMAOEYONS","s":"011300013","i":"011211121","w":["FORTNIGHT","YESTERDAY","SOMETIMES","AFTERNOON"],"t":"Matters of time"},{"n":6,"g":"FFFIIFIRREIEPLLRIGREAPEBRCRAOHENODTF","s":"023030300","i":"003112212","w":["FIRELIGHT","FIREBRAND","FIREPROOF","FIREPLACE"],"t":"Fire starters"},{"n":6,"g":"PTTERRRAPIREACNITMAENETZEROGLIEGLDSE","s":"013001133","i":"000213210","w":["PERIMETER","TRAPEZOID","RECTANGLE","TRIANGLES"],"t":"Geometry"},{"n":6,"g":"WWWAWAATEATETRSRLTHERERIFALMAENERLKD","s":"023212232","i":"000202220","w":["WATERMARK","WATERFALL","WATERSHED","WATERLINE"],"t":"Water works"},{"n":6,"g":"SSNSSOWNOSNNOOWHFWLBWOAAKRDOERIESFTD","s":"011323310","i":"003132132","w":["SNOWFLAKE","SNOWSHOES","SNOWBOARD","SNOWDRIFT"],"t":"Snow days"},{"n":6,"g":"AGSECCEONOOHTRGERMMOINAPCOISTMRSYHYY","s":"020131112","i":"010222132","w":["ASTRONOMY","ECONOMICS","GEOGRAPHY","CHEMISTRY"],"t":"Fields of study"},{"n":6,"g":"SLPIMSUAMOEBBMAUERUSDLANIIBNECEOANTE","s":"020223321","i":"010011210","w":["SPEEDBOAT","SUBMARINE","LIMOUSINE","AMBULANCE"],"t":"Ways to travel"},{"n":6,"g":"HGCUANRRATIOIOTSIPUSTPTIALNESGYDIASE","s":"023302222","i":"000222221","w":["HAPPINESS","NOSTALGIA","GRATITUDE","CURIOSITY"],"t":"Feelings"},{"n":6,"g":"PHCARSCPYCSIOIENNCDEINUATCETTNRISTOR","s":"003333011","i":"003310130","w":["PHYSICIAN","SCIENTIST","CONDUCTOR","CARPENTER"],"t":"Jobs"},{"n":6,"g":"HYEMPAPETEURAPRDHBAOEPXMIEHOLOSMESRS","s":"003212200","i":"010100113","w":["HYPERBOLE","PARADOXES","METAPHORS","EUPHEMISM"],"t":"Figures of speech"},{"n":6,"g":"HXAACSAYRLMOXCOOOPPHHNIORDOINNECAOEN","s":"030223032","i":"033212120","w":["HARMONICA","SAXOPHONE","ACCORDION","XYLOPHONE"],"t":"Instruments"},{"n":6,"g":"SDBUACUNTTNFDALRELNAIEOTRCOWIENOURNP","s":"032033220","i":"032311301","w":["SUNFLOWER","CARNATION","BUTTERCUP","DANDELION"],"t":"Flowers"},{"n":6,"g":"AHARNDBPICOATHOOLPOEGRBAGVREYRACPHYK","s":"011102310","i":"031221320","w":["ANTHOLOGY","HARDCOVER","PAPERBACK","BIOGRAPHY"],"t":"Bookshelf"},{"n":6,"g":"WHLUISNOWRGHHTISNRTRIILWNIOCANENRDMG","s":"032321130","i":"000001100","w":["WHIRLWIND","SNOWSTORM","LIGHTNING","HURRICANE"],"t":"Wild weather"},{"n":6,"g":"SCCROMAIRSHHMASOACLOAROLNDTACTEAKEET","s":"032222122","i":"000103033","w":["SHORTCAKE","MARMALADE","CROISSANT","CHOCOLATE"],"t":"Cafe treats"},{"n":6,"g":"FIBGAONSRHDOEZTOOKLIERREEENMDPEARNER","s":"002120202","i":"023000222","w":["FISHERMAN","GONDOLIER","BARTENDER","ZOOKEEPER"],"t":"Odd jobs"},{"n":6,"g":"DMIISCCASSHCEORRCKLSORTOHCWAVEORELEW","s":"011003331","i":"010033113","w":["DISHCLOTH","MICROWAVE","CORKSCREW","CASSEROLE"],"t":"In the kitchen"},{"n":6,"g":"AASCAUCRUTPBEUARMGIRCBAHOEIKNGUESRSE","s":"033122023","i":"013220121","w":["AUBERGINE","CUCUMBERS","ARTICHOKE","ASPARAGUS"],"t":"Vegetables"},{"n":6,"g":"SLACENUNPGLPDTURSROACRTVRAAEIIPETNGS","s":"033013210","i":"010231001","w":["SCULPTURE","ENGRAVING","PORTRAITS","LANDSCAPE"],"t":"Fine art"},{"n":6,"g":"DEXSOUECVEPARTIUTUIRNENERARSIRIONRSY","s":"033113112","i":"000302111","w":["DEPARTURE","SOUVENIRS","ITINERARY","EXCURSION"],"t":"Vacation"},{"n":6,"g":"BFSCTIHRIARMREPEWTAAOHMEDGANRYRKSSSE","s":"013233022","i":"001223231","w":["BIRTHDAYS","FIREWORKS","CHAMPAGNE","STREAMERS"],"t":"Time to celebrate"},{"n":6,"g":"CPLENONOINGTITRNISTUUDBUETINLARENYTA","s":"021220223","i":"010013121","w":["CONTINENT","LONGITUDE","PENINSULA","TRIBUTARY"],"t":"Geography"},{"n":6,"g":"ASTEMSSOOTRUNPALOEIRRIGNHLDOVSTAIGHT","s":"000033322","i":"032333103","w":["ASTEROIDS","SUPERNOVA","STARLIGHT","MOONLIGHT"],"t":"Night sky"}]};
 const SIZES = {4:'Small',5:'Medium',6:'Large'};
-const EPOCH = new Date(2026, 10, 14);
 const $ = id => document.getElementById(id);
 const store = {
   get(k){ try { return JSON.parse(localStorage.getItem('pinwheel3:'+k)); } catch(e){ return null; } },
   set(k,v){ try { localStorage.setItem('pinwheel3:'+k, JSON.stringify(v)); } catch(e){} }
 };
-const today = Math.max(0, Math.round((new Date().setHours(0,0,0,0) - EPOCH) / 864e5));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let n = 4, day = today, P, orb, cellOrb, S, runId = 0, tick = null, sel = null;
+// `day` is the puzzle index within the current size (0 = No. 1). Not tied to the calendar.
+const last = store.get('last') || {};
+let n = [4,5,6].includes(last.n) ? last.n : 4, day = Math.max(0, last.i | 0), P, orb, cellOrb, S, runId = 0, tick = null, sel = null;
 
 function orbits(n){
   const seen = new Set(), out = [];
@@ -350,17 +357,19 @@ function orbits(n){
   }
   return out;
 }
-const key = () => n + ':' + (day % BANK[n].length);
+const key = () => n + ':' + day;
 const colorOf = cell => { const [i,j] = cellOrb[cell]; return (j + S.ph[i]) & 3; };
 const solved = () => S.ph.every((p,i) => p === +P.s[i]);
 const fmt = s => Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 
 function load(){
   runId++; clearInterval(tick); tick = null; sel = null;
-  const list = BANK[n]; P = list[day % list.length];
+  const list = BANK[n]; day = Math.min(day, list.length - 1); P = list[day];
+  store.set('last', {n, i: day});
   orb = orbits(n); cellOrb = {};
   orb.forEach((o,i) => o.forEach((cell,j) => cellOrb[cell] = [i,j]));
   S = store.get(key()) || { ph:[...P.i].map(Number), lock:[0], hints:0, secs:0, done:false, theme:false, started:false };
+  S.hist = S.hist || [];
   $('cele').hidden = true; $('board').classList.remove('out');
   build(); paint(); chrome();
   if (S.started && !S.done) startClock();
@@ -377,17 +386,11 @@ function build(){
     }
     const t = document.createElement('button'); t.className = 'tile'; t.dataset.cell = cell; t.textContent = P.g[cell];
     t.addEventListener('click', () => spin(cellOrb[cell][0], true));
-    t.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') mates(cell, true); });
-    t.addEventListener('pointerleave', () => mates(cell, false));
     b.appendChild(t);
   }
   b.insertAdjacentHTML('beforeend', '<svg class="link" id="link" viewBox="0 0 100 100" aria-hidden="true"><polygon points=""/></svg>');
 }
 function tileEl(cell){ return $('board').querySelector('[data-cell="'+cell+'"]'); }
-function mates(cell, on){
-  orb[cellOrb[cell][0]].forEach(c => tileEl(c).classList.toggle('mate', on || cellOrb[c][0] === sel));
-  document.querySelectorAll('.word span').forEach(s => s.classList.toggle('hl', on && +s.dataset.cell === cell));
-}
 function paint(flashOrb){
   const strings = [[],[],[],[]];
   for (let cell=0; cell<n*n; cell++){
@@ -403,22 +406,22 @@ function paint(flashOrb){
   strings.forEach((cells,k) => {
     const row = document.createElement('div'); row.className = 'read c'+k; row.dataset.k = k;
     row.innerHTML = '<span class="sw c'+k+'"></span><span class="word">' +
-      cells.map(c => '<span data-cell="'+c+'" class="'+(flashOrb!=null && cellOrb[c][0]===flashOrb ? 'flash':'')+'">'+P.g[c]+'</span>').join('') +
+      cells.map(c => '<span data-cell="'+c+'" class="'+(flashOrb!=null && cellOrb[c][0]===flashOrb ? 'flash':'')+(!S.done && cellOrb[c][0]===sel ? ' hl':'')+'">'+P.g[c]+'</span>').join('') +
       '</span><span class="ok" aria-hidden="true">✓</span>';
     reads.appendChild(row);
   });
   reads.classList.toggle('solved', S.done);
+  $('undo').disabled = !S.hist.length;
   if (flashOrb != null) requestAnimationFrame(() => requestAnimationFrame(() =>
     reads.querySelectorAll('.flash').forEach(s => s.classList.remove('flash'))));
 }
 function chrome(){
   $('num').textContent = 'No. ' + (day + 1);
-  const d = new Date(EPOCH); d.setDate(d.getDate() + day);
-  $('date').textContent = day === today ? 'Today' : d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
-  $('prev').disabled = day === 0;
+  $('date').textContent = 'of ' + BANK[n].length;
+  $('prev').disabled = day === 0; $('next').disabled = day >= BANK[n].length - 1;
   document.querySelectorAll('.sizes button').forEach(b => {
     const m = +b.dataset.n; b.setAttribute('aria-pressed', m === n);
-    const s = store.get(m + ':' + (day % BANK[m].length)); b.classList.toggle('done', !!(s && s.done));
+    const s = store.get(m + ':' + Math.min(day, BANK[m].length - 1)); b.classList.toggle('done', !!(s && s.done));
   });
   $('clock').textContent = fmt(S.secs) + (S.done ? ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints') : '');
   const veiled = !!P.t && !!store.get('hideTheme') && !S.theme && !S.done, tl = $('themeLine');
@@ -427,7 +430,7 @@ function chrome(){
   $('themeTag').textContent = veiled ? 'Theme · tap to reveal' : 'Theme';
   if (veiled){ tl.setAttribute('role','button'); tl.tabIndex = 0; tl.setAttribute('aria-label','Reveal the theme. Counts as a hint.'); }
   else { tl.removeAttribute('role'); tl.removeAttribute('tabindex'); tl.removeAttribute('aria-label'); }
-  $('hint').hidden = S.done; $('reset').hidden = S.done; $('again').hidden = !S.done; $('copy').hidden = !S.done;
+  $('hint').hidden = S.done; $('undo').hidden = S.done; $('reset').hidden = S.done; $('again').hidden = !S.done; $('copy').hidden = !S.done;
   $('controls').hidden = false; $('copied').textContent = '';
   $('board').hidden = S.done; $('reads').hidden = S.done; $('snaps').hidden = !S.done;
   if (S.done) snaps();
@@ -440,13 +443,15 @@ function startClock(){
 }
 function spin(i, user){
   if (S.done) return;
-  sel = i;
+  const fresh = sel !== i; sel = i;
   if (S.lock.includes(i)){
     paint();
     orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('nope'); void t.offsetWidth; t.classList.add('nope'); });
     return;
   }
+  if (fresh && !store.get('quick')){ paint(); return; }   // first tap only selects
   S.started = true; startClock();
+  S.hist.push(i); if (S.hist.length > 300) S.hist.shift();
   lede(); S.ph[i] = (S.ph[i] + 3) & 3;               // colors travel clockwise
   orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
   paint(i); save();
@@ -486,7 +491,7 @@ $('hint').onclick = () => {
   const open = orb.map((_,i) => i).filter(i => !S.lock.includes(i));
   const pool = wrong.length ? wrong : open; if (!pool.length) return;
   const i = pool[Math.floor(Math.random() * pool.length)];
-  S.started = true; startClock(); S.hints++; S.ph[i] = +P.s[i]; S.lock.push(i); sel = i;
+  S.started = true; startClock(); S.hints++; S.ph[i] = +P.s[i]; S.lock.push(i); sel = i; S.hist = S.hist.filter(x => x !== i);
   orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
   paint(i); save(); if (solved()) win();
 };
@@ -499,9 +504,15 @@ const unveil = () => {
 };
 $('themeLine').onclick = unveil;
 $('themeLine').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); unveil(); } };
-$('reset').onclick = () => { sel = null; lede(); S.ph = [...P.i].map(Number); S.lock = [0]; paint(); save(); };
+$('undo').onclick = () => {
+  if (S.done || !S.hist.length) return;
+  const i = S.hist.pop(); sel = S.hist.length ? i : null; S.ph[i] = (S.ph[i] + 1) & 3;
+  orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
+  paint(i); save(); if (solved()) win();
+};
+$('reset').onclick = () => { sel = null; lede(); S.ph = [...P.i].map(Number); S.lock = [0]; S.hist = []; paint(); save(); };
 $('prev').onclick = () => { if (day > 0){ day--; load(); } };
-$('next').onclick = () => { day++; load(); };
+$('next').onclick = () => { if (day < BANK[n].length - 1){ day++; load(); } };
 document.querySelectorAll('.sizes button').forEach(b => b.onclick = () => { n = +b.dataset.n; load(); });
 const DEMO = { g:'SWPOGALMPRINADYE', s:[0,1,3,2] };
 let demoTimer = null;
@@ -540,8 +551,8 @@ $('wipe').onclick = () => {
   if (!wipeArmed){ wipeArmed = true; $('wipe').textContent = 'Tap again to erase everything'; return; }
   try { Object.keys(localStorage).filter(k => k.startsWith('pinwheel')).forEach(k => localStorage.removeItem(k)); } catch(e){}
   wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh';
-  $('shapes').checked = false; document.body.classList.remove('shapes'); $('hideTheme').checked = false;
-  n = 4; day = today; load(); $('helpBody').scrollTop = 0;
+  $('shapes').checked = false; document.body.classList.remove('shapes'); $('hideTheme').checked = false; $('quick').checked = false;
+  n = 4; day = 0; load(); $('helpBody').scrollTop = 0;
 };
 $('helpClose').onclick = () => $('help').close();
 $('helpX').onclick = () => $('help').close();
@@ -556,6 +567,8 @@ $('copy').onclick = async () => {
 };
 $('shapes').checked = !!store.get('shapes'); document.body.classList.toggle('shapes', $('shapes').checked);
 $('shapes').onchange = () => { store.set('shapes', $('shapes').checked); document.body.classList.toggle('shapes', $('shapes').checked); };
+$('quick').checked = !!store.get('quick');
+$('quick').onchange = () => store.set('quick', $('quick').checked);
 $('hideTheme').checked = !!store.get('hideTheme');
 $('hideTheme').onchange = () => { store.set('hideTheme', $('hideTheme').checked); chrome(); };
 load();

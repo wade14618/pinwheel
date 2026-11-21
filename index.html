@@ -13,6 +13,7 @@
 <style>
 /* Layout idea: one narrow column, the board is the hero; four blade colors carry all meaning. */
 :root{
+  --bwd:min(420px, calc((min(100vw, 468px) - 32px) * .92)); /* board width: about 92% of the column, for side margins */
   --bg:#eef1f6; --surface:#ffffff; --ink:#131c33; --muted:#5d6780; --line:#d5dbe7;
   --c0:#ff7a59; --c1:#ffc43d; --c2:#3ecfb2; --c3:#7fa8ff; --tile-ink:#131c33;
   --stencil:#131c33; --stencil-edge:#2a3655;
@@ -35,6 +36,14 @@
 [hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+/* v77: solid background (the darker end of v76's gradient) with a faint colored pinwheel watermark (fixed layers behind the page) */
+:root{--bgA:#f5f7fc; --bgB:#dce3ee; --bgC:#ffffff; --wm:.13}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--bgA:#1a2440; --bgB:#0e1424; --bgC:#070b16; --wm:.10} }
+:root[data-theme="dark"]{--bgA:#1a2440; --bgB:#0e1424; --bgC:#070b16; --wm:.10}
+body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:-1}
+body::before{inset:0;background:var(--bgC)}
+body::after{right:-38vw;bottom:-26vh;width:max(110vw,480px);aspect-ratio:1;opacity:var(--wm);transform:rotate(-12deg);
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 28 28"><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%23ff7a59"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%23ffc43d" transform="rotate(90)"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%233ecfb2" transform="rotate(180)"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%237fa8ff" transform="rotate(270)"/></svg>') center/contain no-repeat}
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .app{max-width:468px;margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:12px}
@@ -45,6 +54,8 @@ header{display:flex;align-items:center;gap:8px}
 .brand h1{font-family:var(--display);font-weight:700;font-size:clamp(22px, calc((100vw - 252px) / 4.1), 30px);letter-spacing:-.02em;margin:0;line-height:1;white-space:nowrap}
 .logo-spin{transform-origin:0 0;animation:idle 14s linear infinite}
 @keyframes idle{to{transform:rotate(360deg)}}
+.help:focus{outline:none}
+#helpX{width:46px;height:46px;display:grid;place-items:center;padding:0;box-shadow:0 1px 4px rgba(19,28,51,.10)}   /* v91: the help panel takes focus on open, so Safari does not ring the close button */
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-weight:800}
 
 .stepper{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;font-variant-numeric:tabular-nums}
@@ -72,12 +83,12 @@ header{display:flex;align-items:center;gap:8px}
 .themeline b.fresh{animation:themein .35s ease-out}
 @keyframes themein{from{opacity:0;transform:scale(.9)}}
 .board-wrap{display:flex;justify-content:center}
-.board{--gap:7px;position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:var(--gap);width:min(100%,420px);aspect-ratio:1}
+.board{--gap:7px;position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:var(--gap);width:var(--bw, var(--bwd));aspect-ratio:1}
 .board[data-n="6"]{--gap:6px}
 .tile{position:relative;border:0;padding:0;border-radius:20%;background:var(--c);color:var(--tile-ink);
-  font-weight:800;font-size:calc(min(420px, 100vw - 32px) / var(--n) * .46);line-height:1;
+  font-weight:800;font-size:calc(var(--bw, var(--bwd)) / var(--n) * .46);line-height:1;
   display:grid;place-items:center;transition:background-color .26s ease, box-shadow .15s, opacity .3s;
-  box-shadow:inset 0 -4px 0 rgba(19,28,51,.16);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+  box-shadow:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .c0{--c:var(--c0)} .c1{--c:var(--c1)} .c2{--c:var(--c2)} .c3{--c:var(--c3)}
 .shapes .tile::after,.shapes .sw::after{content:"";position:absolute;top:11%;right:11%;width:15%;aspect-ratio:1;background:var(--tile-ink);opacity:.5}
 .c0::after{border-radius:50%}
@@ -86,16 +97,16 @@ header{display:flex;align-items:center;gap:8px}
 .c3::after{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
 .board{transition:opacity .35s, transform .35s}
 .board.out{opacity:0;transform:scale(.94)}
-.cele{width:min(100%,420px);aspect-ratio:1;display:grid;place-items:center;will-change:transform,opacity;animation:celefade 4s linear forwards}
+.cele{width:var(--bw, var(--bwd));aspect-ratio:1;display:grid;place-items:center;will-change:transform,opacity;animation:celefade 4s linear forwards}
 .cele svg{width:80%;height:80%;will-change:transform;animation:celerot 3s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes celerot{from{transform:rotate(0)}to{transform:rotate(1260deg)}}
 @keyframes celefade{0%{opacity:0;transform:scale(.6);animation-timing-function:ease-out}12.5%{opacity:1;transform:scale(1)}87.5%{opacity:1;transform:scale(1);animation-timing-function:ease-in}100%{opacity:0;transform:scale(.3)}}
-.snaps{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:20px 16px;width:min(100%,420px);animation:snapin .5s ease-out}
+.snaps{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:20px 16px;width:var(--bw, min(100%,420px));animation:snapin .5s ease-out}
 @keyframes snapin{from{opacity:0;transform:scale(.96)}}
 .snap{margin:0;display:grid;gap:8px}
 .sb{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:3px;background:var(--stencil);padding:5px;border-radius:12px;border:1.5px solid var(--stencil-edge)}
 .sb i{aspect-ratio:1;border-radius:20%;background:var(--c);color:var(--tile-ink);display:grid;place-items:center;font-style:normal;font-weight:800;
-  font-size:calc(min(420px, 100vw - 32px) / 2 / var(--n) * .5)}
+  font-size:calc(var(--bw, min(420px, 100vw - 32px)) / 2 / var(--n) * .5)}
 .sb i.off{background:none;color:transparent}
 .sb i.gap{background:none}
 .snap figcaption{display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;letter-spacing:.08em;font-size:16px}
@@ -107,9 +118,16 @@ header{display:flex;align-items:center;gap:8px}
 .tile.locked.mate{box-shadow:inset 0 0 0 3px var(--tile-ink)}
 .link{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;overflow:visible}
 .link polygon{fill:none;stroke:var(--ink);stroke-width:.5;stroke-dasharray:1.6 1.6;opacity:.6;stroke-linejoin:round}
-.opt{display:flex;gap:10px;align-items:center;font-size:15px}
-.opt input{width:18px;height:18px}
+.opt{display:flex;gap:12px;align-items:flex-start;font-size:15px;line-height:1.35}
+.opt input{flex:none;width:20px;height:20px;margin:0}
 .tile.spin{animation:spin .34s cubic-bezier(.3,1.4,.5,1)}
+@property --wp{syntax:'<percentage>';inherits:false;initial-value:100%}
+.tile{isolation:isolate}
+.tile.wipe{transition:box-shadow .15s, opacity .3s}
+.tile.wipe::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;background:var(--old);
+  -webkit-mask-image:linear-gradient(var(--ang), transparent var(--wp), #000 var(--wp));mask-image:linear-gradient(var(--ang), transparent var(--wp), #000 var(--wp));
+  animation:wipe .6s ease-in-out forwards}
+@keyframes wipe{from{--wp:0%}to{--wp:100%}}
 @keyframes spin{0%{transform:scale(1)}35%{transform:scale(.8) rotate(28deg)}100%{transform:scale(1)}}
 .tile.nope{animation:nope .3s}
 @keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -124,6 +142,16 @@ header{display:flex;align-items:center;gap:8px}
 .stencil i.hole{background:transparent;box-shadow:none;border-radius:18%;outline:2px solid var(--stencil-edge);outline-offset:calc(var(--gap) / 2 - 1px)}
 
 .reads{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* tutorial (v56) */
+.coach{background:var(--surface);border:1.5px solid var(--ink);border-radius:16px;padding:12px 14px;font-size:15.5px;line-height:1.38;display:grid;gap:8px;align-content:start}
+.coach p{margin:0}
+.tut .sizes,.tut .caption{display:none!important}
+.stepper .skip{width:auto;height:auto;min-width:0;border:0;background:none;border-radius:0;box-shadow:none;display:inline;line-height:1.2}
+.tut .app{padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))}
+.coach .row{display:flex;gap:8px;align-items:center}
+.skip{background:none;border:0;color:var(--muted);font-weight:600;font-size:12.5px;text-decoration:underline;padding:0}
+
+
 .read{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:8px 10px;min-width:0;transition:opacity .3s, border-color .3s, transform .3s}
 .sw{position:relative;flex:none;width:20px;height:20px;border-radius:7px;background:var(--c)}
 .shapes .sw::after{top:28%;right:28%;width:44%;opacity:.6}
@@ -131,6 +159,12 @@ header{display:flex;align-items:center;gap:8px}
 .word span{display:inline-block;min-width:.72em;text-align:center;border-radius:5px;transition:background-color .5s}
 .word span.flash{background:var(--c);color:var(--tile-ink);transition:none}
 .word span.hl{background:var(--c);color:var(--tile-ink)}
+/* v80: each word sits on its own color (no white box, no swatch); a selected pinwheel's letters sit on a lighter tint of the word's color */
+.read{background:var(--c);border-color:transparent;color:var(--tile-ink)}
+.read .sw{display:none}
+.read .word span.hl,.read .word span.flash{background:color-mix(in srgb, var(--c) 75%, white);color:inherit}
+.strips .strip{background:var(--c);border-color:transparent;color:var(--tile-ink)}
+.strips .strip i{display:none}
 .reads[data-n="5"] .word{font-size:min(21px,4.7vw)}
 .reads[data-n="6"] .word{font-size:min(18px,3.7vw);letter-spacing:.03em}
 .read .ok{display:none}
@@ -148,7 +182,9 @@ header{display:flex;align-items:center;gap:8px}
 .btn.share{padding:9px 12px;display:grid;place-items:center}
 .copied{font-size:13px;font-weight:600;color:var(--muted)}
 .copied:empty{display:none}
-.clock{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.clock{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right;line-height:1.25}
+.clock small{display:block;font-size:13px;font-weight:500}
+.controls.done .clock small{display:inline;font-size:inherit;font-weight:inherit}
 
 .result{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:12px}
 .result[hidden]{display:none}
@@ -173,7 +209,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .fig{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;background:var(--bg);border-radius:18px;padding:16px}
 .mini{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;width:156px;flex:none}
 .mini .t{aspect-ratio:1;border-radius:20%;background:var(--c);color:var(--tile-ink);font-weight:800;font-size:19px;display:grid;place-items:center;
-  box-shadow:inset 0 -3px 0 rgba(19,28,51,.16);transition:background-color .35s, opacity .3s}
+  box-shadow:none;transition:background-color .35s, opacity .3s}
 .mini .t.dim{opacity:.2}
 .mini .t.mate{box-shadow:inset 0 0 0 2.5px var(--tile-ink)}
 .mini .t.locked{box-shadow:none;background-image:repeating-linear-gradient(135deg,rgba(19,28,51,.2) 0 2px,transparent 2px 6px)}
@@ -212,7 +248,8 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .help .ver{margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .help .note{color:var(--muted);font-size:15px;line-height:1.5;border-top:1.5px solid var(--line);padding-top:18px;margin:0}
 .help .note b{color:var(--ink)}
-.help .btn.primary{padding:14px;font-size:17px}
+.help .btn,.help .btn.primary{padding:13px;font-size:16px}
+.help #replayTut,.help #wipe{margin-top:-12px}   /* buttons sit 10px apart instead of the 22px section gap */
 @media (prefers-reduced-motion: reduce){
   .themeline b.fresh{animation:none}
   .logo-spin,.tile.spin,.tile.nope{animation:none}
@@ -251,6 +288,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
   <div class="reads" id="reads" aria-label="The four words so far"></div>
 
   <p class="caption" id="caption" aria-live="polite" hidden></p>
+  <div class="coach" id="coach" aria-live="polite" hidden></div>
 
   <div class="controls" id="controls">
     <button class="btn primary" id="nextPuzzle" hidden>Next puzzle</button>
@@ -266,20 +304,20 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 </div>
 
 <dialog id="help" aria-labelledby="helpTitle">
-  <div class="help" id="helpBody">
+  <div class="help" id="helpBody" tabindex="-1" autofocus>
     <div class="help-head">
       <div>
         <h2 id="helpTitle">How to play</h2>
         <p class="sub">Four words are jumbled together in one grid. <b>Change the tile colors until every color spells a real word.</b></p>
       </div>
-      <button class="icon-btn" id="helpX" aria-label="Close">✕</button>
+      <button class="icon-btn" id="helpX" aria-label="Close"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
     </div>
 
     <section class="step">
       <h3><span class="n">1</span>Read one color at a time</h3>
       <div class="fig stack" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
       <p>To see what a color spells, read only the tiles of that color, left to right and top to bottom, like reading a page. Here the four <span class="chip c0">coral</span> tiles, read in order, spell <b>SPIN</b>.</p>
-      <p>The four boxes under the grid show what each color spells right now. The puzzle starts with the colors mixed up, so at first they show nonsense. You have solved it when all four show real words.</p>
+      <p>The four words under the grid show what each color spells right now. They start as nonsense because the colors are mixed up. You have solved it when all four are real words.</p>
     </section>
 
     <section class="step">
@@ -298,10 +336,10 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
           <div class="col"><span class="lab">After</span><div class="mini" id="fig2b"></div><div class="strips" id="fig2bs"></div></div>
         </div>
       </div>
-      <p>Tap any tile to outline its pinwheel. Nothing changes yet, and the letter it controls in each word lights up in the boxes under the grid.</p>
+      <p>Tap any tile to outline its pinwheel. Nothing changes yet, and the letter the pinwheel controls in each word is highlighted in the words under the grid.</p>
       <p>Tap the same pinwheel again and its four colors each move one tile clockwise. It still has one of each color, just in different places.</p>
       <p><b>The letters never move.</b> Only the colors change, so one turn changes one letter in all four words at once.</p>
-      <p>Keep turning pinwheels until all four boxes show real words. There is only one solution, and all four words fall into place at the same moment.</p>
+      <p>Keep turning pinwheels until all four words under the grid are real words. There is only one solution, and all four words fall into place at the same moment.</p>
     </section>
 
     <section class="step">
@@ -316,6 +354,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
         <li><b>Hint</b> sets one pinwheel for you and stripes it.</li>
         <li><b>Undo</b> takes back your last turn.</li>
         <li><b>Reset</b> puts the colors back where they started.</li>
+        <li><b>Par</b> is the fewest turns that solve the puzzle. Your turns are counted under the clock. Undo does not take a turn off the count.</li>
       </ul>
     </section>
 
@@ -334,8 +373,9 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     <label class="opt"><input type="checkbox" id="hideTheme"> Hide the theme until I tap it (harder)</label>
     <label class="opt"><input type="checkbox" id="shapes"> Add a shape to each color (helps if colors are hard to tell apart)</label>
     <button class="btn primary" id="helpClose">Let's play</button>
+    <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 52</p>
+    <p class="ver">Version 93</p>
   </div>
 </dialog>
 
@@ -351,7 +391,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // `day` is the puzzle index within the current size (0 = No. 1). Not tied to the calendar.
 const last = store.get('last') || {};
-let n = [4,5,6].includes(last.n) ? last.n : 4, day = Math.max(0, last.i | 0), P, orb, cellOrb, S, runId = 0, tick = null, sel = null;
+let n = [4,5,6].includes(last.n) ? last.n : 4, day = Math.max(0, last.i | 0), P, orb, cellOrb, S, runId = 0, tick = null, sel = null, tut = false, tstep = 0;
 
 function orbits(n){
   const seen = new Set(), out = [];
@@ -366,22 +406,29 @@ function orbits(n){
 }
 const key = () => n + ':' + day;
 const colorOf = cell => { const [i,j] = cellOrb[cell]; return (j + S.ph[i]) & 3; };
+const par = () => orb.reduce((a,_,i) => a + ((+P.i[i] - +P.s[i] + 4) & 3), 0);
+const turnsTxt = t => t + (t === 1 ? ' turn' : ' turns');
 const solved = () => S.ph.every((p,i) => p === +P.s[i]);
 const fmt = s => Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 
+// Tutorial: the help screen's example puzzle (SPIN WORD GAME PLAY), three pinwheels one turn off.
+const TUT = { n:4, g:'SWPOGALMPRINADYE', s:'0132', i:'0203', w:['SPIN','WORD','GAME','PLAY'], t:"Let's play" };
+// Guided steps. pin: the only pinwheel that may be tapped; cell: the tile the coach names.
+// Steps 1,3,5 wait for a select; 2,4,6 for a turn.
+const TUT_STEP = { 1:{pin:1,cell:1}, 2:{pin:1}, 3:{pin:3,cell:9}, 4:{pin:3}, 5:{pin:2,cell:13}, 6:{pin:2} };
 function load(){
   runId++; clearInterval(tick); tick = null; sel = null;
-  const list = BANK[n]; day = Math.min(day, list.length - 1); P = list[day];
-  store.set('last', {n, i: day});
+  if (tut){ n = 4; P = TUT; }
+  else { const list = BANK[n]; day = Math.min(day, list.length - 1); P = list[day]; store.set('last', {n, i: day}); }
   orb = orbits(n); cellOrb = {};
   orb.forEach((o,i) => o.forEach((cell,j) => cellOrb[cell] = [i,j]));
-  S = store.get(key()) || { ph:[...P.i].map(Number), lock:[0], hints:0, secs:0, done:false, theme:false, started:false };
-  S.hist = S.hist || [];
+  S = (!tut && store.get(key())) || { ph:[...P.i].map(Number), lock:[0], hints:0, secs:0, done:false, theme:false, started:false };
+  S.hist = S.hist || []; if (S.turns == null) S.turns = 0;
   $('cele').hidden = true; $('board').classList.remove('out');
   build(); paint(); chrome();
   if (S.started && !S.done) startClock();
 }
-function save(){ store.set(key(), S); }
+function save(){ if (!tut) store.set(key(), S); }
 
 function build(){
   const b = $('board'); b.style.setProperty('--n', n); b.dataset.n = n; b.innerHTML = '';
@@ -403,7 +450,7 @@ function paint(flashOrb){
   for (let cell=0; cell<n*n; cell++){
     if (!(cell in cellOrb)) continue;
     const k = colorOf(cell), t = tileEl(cell), locked = S.lock.includes(cellOrb[cell][0]);
-    t.className = 'tile c'+k + (locked ? ' locked' : '') + (cellOrb[cell][0] === sel ? ' mate' : '') + (t.classList.contains('spin') ? ' spin' : '');
+    t.className = 'tile c'+k + (locked ? ' locked' : '') + (cellOrb[cell][0] === sel ? ' mate' : '') + (t.classList.contains('spin') ? ' spin' : '') + (t.classList.contains('wipe') ? ' wipe' : '');
     t.setAttribute('aria-label', P.g[cell] + ', ' + ['coral','yellow','green','blue'][k] + (locked ? ', set' : ''));
     strings[k].push(cell);
   }
@@ -411,7 +458,8 @@ function paint(flashOrb){
     orb[sel].map(c => ((c % n + .5) / n * 100) + ',' + ((Math.floor(c / n) + .5) / n * 100)).join(' '));
   const reads = $('reads'); reads.innerHTML = ''; reads.dataset.n = n;
   strings.forEach((cells,k) => {
-    const row = document.createElement('div'); row.className = 'read c'+k; row.dataset.k = k;
+    const row = document.createElement('div'); row.className = 'read c'+k;
+    row.dataset.k = k;
     row.innerHTML = '<span class="sw c'+k+'"></span><span class="word">' +
       cells.map(c => '<span data-cell="'+c+'" class="'+(flashOrb!=null && cellOrb[c][0]===flashOrb ? 'flash':'')+(!S.done && cellOrb[c][0]===sel ? ' hl':'')+'">'+P.g[c]+'</span>').join('') +
       '</span><span class="ok" aria-hidden="true">✓</span>';
@@ -419,6 +467,8 @@ function paint(flashOrb){
   });
   reads.classList.toggle('solved', S.done);
   $('undo').disabled = !S.hist.length;
+  $('reset').disabled = S.lock.length <= 1 && S.ph.every((p,i) => p === +P.i[i]);   // nothing to reset
+  clockTxt();
   if (flashOrb != null) requestAnimationFrame(() => requestAnimationFrame(() =>
     reads.querySelectorAll('.flash').forEach(s => s.classList.remove('flash'))));
 }
@@ -431,7 +481,7 @@ function chrome(){
     const s = store.get(m + ':' + Math.min(day, BANK[m].length - 1)); b.classList.toggle('done', !!(s && s.done));
   });
   $('controls').classList.toggle('done', S.done);
-  $('clock').textContent = (S.done ? 'Solved in ' : '') + fmt(S.secs) + (S.done ? ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints') : '');
+  clockTxt();
   const veiled = !!P.t && !!store.get('hideTheme') && !S.theme && !S.done, tl = $('themeLine');
   tl.hidden = !P.t; tl.classList.toggle('veiled', veiled);
   $('themeName').textContent = veiled ? '' : P.t; $('themeName').hidden = veiled; $('themeDots').hidden = !veiled; $('themeDots').classList.remove('go');
@@ -443,27 +493,84 @@ function chrome(){
   $('board').hidden = S.done; $('reads').hidden = S.done; $('snaps').hidden = !S.done;
   if (S.done) snaps();
   lede(S.done ? 'A centuries-old cipher: One pattern of holes unlocks all four words, a quarter turn at a time.' : '');
+  if (tut){
+    $('num').textContent = 'Tutorial'; $('date').innerHTML = S.done ? '' : '<button class="skip" id="tSkip">Skip</button>'; $('prev').disabled = $('next').disabled = true;
+    $('controls').hidden = true;
+  } else $('clock').hidden = false;
+  coach();
 }
+function coach(){
+  const c = $('coach'); c.hidden = !tut; document.body.classList.toggle('tut', tut); if (!tut){ fit(); return; }
+  const T = [
+    '<p><b>Welcome!</b> Four words hide in this grid, one per color. The words under the grid show what each color spells now. They start scrambled.</p><p>Striped tiles are already correct and never change. The theme, <b>Let\'s play</b>, is your clue.</p><div class="row"><button class="btn primary" id="tNext">Next</button></div>',
+    '<p><b>Tap the W</b> in the top row.</p>',
+    '<p>The outlined tiles are one <b>pinwheel</b>: four linked tiles, one of each color. The letters the pinwheel controls are highlighted in the words below. <b>Tap the W again to turn the pinwheel.</b></p>',
+    '<p>The pinwheel\'s colors each moved one tile clockwise. The letters stayed put. Yellow now reads <b>WOIN</b>. For <i>Let\'s play</i>, that could be <b>WORD</b>, so the I and N need to become R and D.</p><p><b>Tap the R.</b></p>',
+    '<p><b>Tap the R again to turn the pinwheel.</b> Watch the yellow word below.</p>',
+    '<p>Yellow reads <b>WORN</b>, one letter off. The other words changed too: every turn changes one letter in each word.</p><p><b>Tap the D.</b></p>',
+    '<p><b>Tap the D again to turn the pinwheel and finish.</b></p>',
+    '<p><b>Solved!</b> All four words appeared at once: SPIN, WORD, GAME and PLAY. That\'s a centuries-old cipher: one card with holes, turned a quarter at a time, reveals all four words.</p><p>Tap <b>?</b> any time for the rules and controls.</p><div class="row"><button class="btn primary" id="tStart">Start puzzle No. 1</button></div>'
+  ];
+  // Keep the card one height through the guided steps, so the board does not change size between steps.
+  if (!S.done && !c.style.minHeight){
+    let h = 0;
+    for (let k = 0; k < 7; k++){ c.innerHTML = T[k]; h = Math.max(h, c.getBoundingClientRect().height); }
+    c.style.minHeight = Math.ceil(h) + 'px';
+  }
+  if (S.done) c.style.minHeight = '';
+  c.innerHTML = T[S.done ? 7 : tstep]; requestAnimationFrame(fit);
+  if ($('tNext')) $('tNext').onclick = () => { tstep = 1; paint(); coach(); };
+  if ($('tSkip')) $('tSkip').onclick = endTut;
+  if ($('tStart')) $('tStart').onclick = endTut;
+}
+// In the tutorial, shrink the board so the whole page, coach card included, fits on screen.
+function fit(){
+  document.body.style.removeProperty('--bw');
+  if (!tut) return;
+  for (let k = 0; k < 2; k++){
+    const el = S.done ? $('snaps') : $('board'), w = el.getBoundingClientRect().width;
+    const over = document.documentElement.scrollHeight - innerHeight;
+    if (over <= 0 || !w) break;
+    document.body.style.setProperty('--bw', Math.max(190, Math.floor(w - over - 2)) + 'px');
+  }
+}
+addEventListener('resize', () => { $('coach').style.minHeight = ''; if (tut) coach(); else fit(); });
+function startTut(){ tut = true; tstep = 0; load(); }
+function endTut(){ tut = false; store.set('tutored', 1); store.set('seenHelp', 1); n = 4; day = 0; load(); window.scrollTo(0, 0); }
 function lede(html){ const c = $('caption'); c.innerHTML = html || ''; c.hidden = !html; }
 function startClock(){
   if (tick) return;
-  tick = setInterval(() => { S.secs++; $('clock').textContent = fmt(S.secs); if (S.secs % 5 === 0) save(); }, 1000);
+  tick = setInterval(() => { S.secs++; clockTxt(); if (S.secs % 5 === 0) save(); }, 1000);
 }
 function spin(i, user){
   if (S.done) return;
+  if (tut && (!TUT_STEP[tstep] || TUT_STEP[tstep].pin !== i)) return;
   const fresh = sel !== i; sel = i;
   if (S.lock.includes(i)){
     paint();
     orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('nope'); void t.offsetWidth; t.classList.add('nope'); });
     return;
   }
-  if (fresh && !store.get('quick')){ paint(); return; }   // first tap only selects
+  if (fresh && (tut || !store.get('quick'))){ if (tut && (tstep === 1 || tstep === 3 || tstep === 5)){ tstep++; coach(); } paint(); return; }   // first tap only selects
   S.started = true; startClock();
-  S.hist.push(i); if (S.hist.length > 300) S.hist.shift();
+  S.hist.push(i); if (S.hist.length > 300) S.hist.shift(); S.turns++;
+  const olds = orb[i].map(colorOf);
   lede(); S.ph[i] = (S.ph[i] + 3) & 3;               // colors travel clockwise
-  orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
-  paint(i); save();
+  if (tut && (tstep === 2 || tstep === 4 || tstep === 6)){ tstep++; coach(); }
+  paint(i); wipeIn(i, olds, false); save();
   if (solved()) win();
+}
+// v89: each tile's new color sweeps in from the tile it came from (the previous tile in the pinwheel; the next one for Undo).
+function wipeIn(i, olds, back){
+  if (reduced) return;
+  const pal = ['var(--c0)','var(--c1)','var(--c2)','var(--c3)'], o = orb[i];
+  o.forEach((cell, j) => {
+    const src = o[(j + (back ? 1 : 3)) % 4], t = tileEl(cell);
+    const ang = Math.atan2(Math.floor(cell / n) - Math.floor(src / n), cell % n - src % n) * 180 / Math.PI + 90;
+    t.style.setProperty('--old', pal[olds[j]]); t.style.setProperty('--ang', ang + 'deg');
+    t.classList.remove('wipe'); void t.offsetWidth; t.classList.add('wipe');
+    t.addEventListener('animationend', function done(e){ if (e.animationName === 'wipe'){ t.classList.remove('wipe'); t.removeEventListener('animationend', done); } });
+  });
 }
 function snaps(){
   const el = $('snaps'); el.dataset.n = n; el.style.setProperty('--n', n);
@@ -489,8 +596,13 @@ async function win(){
   await sleep(4000); if (id !== runId) return;
   cele.hidden = true; board.classList.remove('out'); chrome();
 }
+function clockTxt(){
+  const c = $('clock');
+  if (S.done) c.textContent = 'Solved in ' + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) + ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
+  else c.innerHTML = fmt(S.secs) + '<small>' + turnsTxt(S.turns) + ' · par ' + par() + '</small>';
+}
 function shareText(){
-  return 'Pinwheel No. ' + (day+1) + ' · ' + SIZES[n] + ' ' + n + '×' + n + '\n🟧🟨🟩🟦 ' + fmt(S.secs) +
+  return 'Pinwheel No. ' + (day+1) + ' · ' + SIZES[n] + ' ' + n + '×' + n + '\n🟧🟨🟩🟦 ' + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) +
     ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
 }
 
@@ -499,9 +611,9 @@ $('hint').onclick = () => {
   const open = orb.map((_,i) => i).filter(i => !S.lock.includes(i));
   const pool = wrong.length ? wrong : open; if (!pool.length) return;
   const i = pool[Math.floor(Math.random() * pool.length)];
+  const olds = orb[i].map(colorOf);
   S.started = true; startClock(); S.hints++; S.ph[i] = +P.s[i]; S.lock.push(i); sel = i; S.hist = S.hist.filter(x => x !== i);
-  orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
-  paint(i); save(); if (solved()) win();
+  paint(i); wipeIn(i, olds, false); save(); if (solved()) win();
 };
 const unveil = () => {
   const tl = $('themeLine'); if (!tl.classList.contains('veiled') || tl.dataset.busy) return;
@@ -514,15 +626,14 @@ $('themeLine').onclick = unveil;
 $('themeLine').onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); unveil(); } };
 $('undo').onclick = () => {
   if (S.done || !S.hist.length) return;
-  const i = S.hist.pop(); sel = S.hist.length ? i : null; S.ph[i] = (S.ph[i] + 1) & 3;
-  orb[i].forEach(c => { const t = tileEl(c); t.classList.remove('spin'); void t.offsetWidth; t.classList.add('spin'); });
-  paint(i); save(); if (solved()) win();
+  const i = S.hist.pop(); sel = S.hist.length ? i : null; const olds = orb[i].map(colorOf); S.ph[i] = (S.ph[i] + 1) & 3;
+  paint(i); wipeIn(i, olds, true); save(); if (solved()) win();
 };
 $('reset').onclick = () => { sel = null; lede(); S.ph = [...P.i].map(Number); S.lock = [0]; S.hist = []; paint(); save(); };
-$('prev').onclick = () => { if (day > 0){ day--; load(); } };
+$('prev').onclick = () => { if (tut) return; if (day > 0){ day--; load(); } };
 $('nextPuzzle').onclick = () => { if (day < BANK[n].length - 1){ day++; load(); } };
-$('next').onclick = () => { if (day < BANK[n].length - 1){ day++; load(); } };
-document.querySelectorAll('.sizes button').forEach(b => b.onclick = () => { n = +b.dataset.n; load(); });
+$('next').onclick = () => { if (tut) return; if (day < BANK[n].length - 1){ day++; load(); } };
+document.querySelectorAll('.sizes button').forEach(b => b.onclick = () => { if (tut){ tut = false; store.set('tutored', 1); store.set('seenHelp', 1); day = 0; } n = +b.dataset.n; load(); });
 const DEMO = { g:'SWPOGALMPRINADYE', s:[0,1,3,2] };
 let demoTimer = null;
 function mini(el, ph, o){
@@ -561,14 +672,15 @@ $('wipe').onclick = () => {
   try { Object.keys(localStorage).filter(k => k.startsWith('pinwheel')).forEach(k => localStorage.removeItem(k)); } catch(e){}
   wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh';
   $('shapes').checked = false; document.body.classList.remove('shapes'); $('hideTheme').checked = false; $('quick').checked = false;
-  n = 4; day = 0; load(); $('helpBody').scrollTop = 0;
+  n = 4; day = 0; $('help').close(); startTut();
 };
 $('helpClose').onclick = () => $('help').close();
+$('replayTut').onclick = () => { $('help').close(); startTut(); window.scrollTo(0, 0); };
 $('helpX').onclick = () => $('help').close();
 $('help').addEventListener('click', e => { if (e.target === $('help')) $('help').close(); });
 $('help').addEventListener('close', () => { clearTimeout(demoTimer); store.set('seenHelp', 1); });
 $('help').addEventListener('cancel', () => {});
-$('again').onclick = () => { store.set(key(), null); load(); };
+$('again').onclick = () => { if (tut) return; store.set(key(), null); load(); };
 $('copy').onclick = async () => {
   let msg = 'Copied';
   try { await navigator.clipboard.writeText(shareText()); } catch(e){ msg = "Couldn't copy"; }
@@ -580,8 +692,8 @@ $('quick').checked = !!store.get('quick');
 $('quick').onchange = () => store.set('quick', $('quick').checked);
 $('hideTheme').checked = !!store.get('hideTheme');
 $('hideTheme').onchange = () => { store.set('hideTheme', $('hideTheme').checked); chrome(); };
+if (!store.get('seenHelp')){ tut = true; tstep = 0; }
 load();
-if (!store.get('seenHelp')) openHelp();
 </script>
 </body>
 </html>

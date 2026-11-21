@@ -375,7 +375,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 93</p>
+    <p class="ver">Version 94</p>
   </div>
 </dialog>
 
@@ -524,15 +524,18 @@ function coach(){
   if ($('tStart')) $('tStart').onclick = endTut;
 }
 // In the tutorial, shrink the board so the whole page, coach card included, fits on screen.
+let tutBw = null;   // board width used during the guided steps; the solved cards reuse it so nothing jumps in size
 function fit(){
   document.body.style.removeProperty('--bw');
-  if (!tut) return;
+  if (!tut){ tutBw = null; return; }
+  if (S.done && tutBw) document.body.style.setProperty('--bw', tutBw + 'px');
   for (let k = 0; k < 2; k++){
     const el = S.done ? $('snaps') : $('board'), w = el.getBoundingClientRect().width;
     const over = document.documentElement.scrollHeight - innerHeight;
     if (over <= 0 || !w) break;
     document.body.style.setProperty('--bw', Math.max(190, Math.floor(w - over - 2)) + 'px');
   }
+  if (!S.done) tutBw = $('board').getBoundingClientRect().width;
 }
 addEventListener('resize', () => { $('coach').style.minHeight = ''; if (tut) coach(); else fit(); });
 function startTut(){ tut = true; tstep = 0; load(); }

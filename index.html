@@ -394,7 +394,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 122</p>
+    <p class="ver">Version 123</p>
   </div>
 </dialog>
 
@@ -688,7 +688,15 @@ function drawHelp(){
   strips($('fig2as'), mini($('fig2a'), before, {team:1, locked:true, hl:1}), null, false);
   strips($('fig2bs'), mini($('fig2b'), DEMO.s, {team:1, locked:true, hl:1}), null, true);
 }
-function openHelp(){ wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh'; drawHelp(); $('help').showModal(); $('helpBody').scrollTop = 0; }
+// v123: the help window reaches down just past the clock and par line on the main screen.
+function sizeHelp(){
+  const ref = !$('controls').hidden ? $('clock') : ($('nextPuzzle').hidden ? $('reads') : $('controls'));
+  const bottom = Math.min(innerHeight - 15, ref.getBoundingClientRect().bottom + 10);
+  const top = $('help').getBoundingClientRect().top;
+  $('helpBody').style.maxHeight = Math.max(320, bottom - top) + 'px';
+}
+addEventListener('resize', () => { if ($('help').open) sizeHelp(); });
+function openHelp(){ wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh'; drawHelp(); $('help').showModal(); sizeHelp(); $('helpBody').scrollTop = 0; }
 $('helpBtn').onclick = openHelp;
 let wipeArmed = false;
 $('wipe').onclick = () => {

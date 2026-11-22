@@ -14,7 +14,7 @@
 /* Layout idea: one narrow column, the board is the hero; four blade colors carry all meaning. */
 :root{
   --bwd:min(420px, calc((min(100vw, 468px) - 32px) * .92)); /* board width: about 92% of the column, for side margins */
-  --bg:#eef1f6; --surface:#ffffff; --ink:#131c33; --muted:#5d6780; --line:#d5dbe7;
+  --bg:#faf5ea; --surface:#ffffff; --ink:#131c33; --muted:#5d6780; --line:#d5dbe7;
   --c0:#ff7a59; --c1:#ffc43d; --c2:#3ecfb2; --c3:#7fa8ff; --tile-ink:#131c33;
   --stencil:#131c33; --stencil-edge:#2a3655;
   --display:"Fraunces", "Iowan Old Style", Georgia, serif;
@@ -37,7 +37,7 @@
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 /* v77: solid background (the darker end of v76's gradient) with a faint colored pinwheel watermark (fixed layers behind the page) */
-:root{--bgA:#f5f7fc; --bgB:#dce3ee; --bgC:#ffffff; --wm:.13}
+:root{--bgA:#f5f7fc; --bgB:#dce3ee; --bgC:#faf5ea; --wm:.13}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--bgA:#1a2440; --bgB:#0e1424; --bgC:#070b16; --wm:.10} }
 :root[data-theme="dark"]{--bgA:#1a2440; --bgB:#0e1424; --bgC:#070b16; --wm:.10}
 body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:-1}
@@ -202,8 +202,20 @@ header{display:flex;align-items:center;gap:8px}
 .share-text{white-space:pre-wrap;font-size:14px;background:var(--bg);border-radius:10px;padding:10px 12px;user-select:all;-webkit-user-select:all}
 
 dialog{border:0;border-radius:24px;padding:0;width:min(470px,calc(100vw - 24px));max-width:none;background:var(--surface);color:var(--ink);overflow:hidden}
-dialog::backdrop{background:rgba(8,12,24,.6)}
-.help{padding:22px 22px 48px;display:grid;gap:22px;max-height:82vh;max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* v110: the help window starts near the top (covering the title), the game stays visible behind it, and the panel is a cream halfway between white and the page */
+#help{margin:calc(env(safe-area-inset-top, 0px) + 10px) auto auto;box-shadow:none}
+:root{--ctl:#f5eee0; --ctl-edge:#e4d9c3}   /* v113: main-screen controls and the tutorial card use the help window's tan, no edge */
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--ctl:var(--surface); --ctl-edge:var(--line)} }
+.icon-btn,.stepper button,.sizes,.btn:not(.primary),.coach{background:var(--ctl);border-color:var(--ctl-edge)}   /* v116: light tan outline */
+:root{--help-bg:#f5eee0; --help-deep:#ede4d1; --help-soft:#faf6ee; --help-edge:#e4d9c3}   /* v112: tones of one warm color, like Juggle's help */
+#help .fig{background:var(--help-deep)}
+#help .btn:not(.primary),#help .icon-btn{background:var(--help-soft);border-color:var(--help-edge);box-shadow:none}
+#help .rule{border-top-color:var(--help-edge)}
+#help input[type=checkbox]{accent-color:var(--ink)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--help-bg:var(--surface); --help-deep:var(--bg); --help-soft:var(--surface); --help-edge:var(--line)} }
+#help{background:var(--help-bg);max-height:none;border:1.5px solid var(--ctl-edge)}   /* v122: same light tan edge as the controls */
+dialog::backdrop{background:transparent}
+.help{padding:22px 22px 48px;display:grid;gap:22px;max-height:88vh;max-height:calc(100dvh - 70px - env(safe-area-inset-top, 0px));   /* v120: ends 60px above the bottom */overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .help h2{font-family:var(--display);font-size:32px;letter-spacing:-.02em;margin:0 0 6px;line-height:1.05}
 .help .sub{font-size:17px;line-height:1.4;margin:0;color:var(--muted)}
@@ -257,6 +269,14 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .help .note b{color:var(--ink)}
 .help .btn,.help .btn.primary{padding:13px;font-size:16px}
 .help #replayTut,.help #wipe{margin-top:-12px}
+.help .jh h3{font-family:var(--display);font-size:20px;margin:0 0 6px;color:var(--accent-h, #e0613f)}
+.help .jh p,.help .jh li{font-size:15.5px;line-height:1.45;margin:6px 0}
+.help .jh ul{padding-left:20px;margin:6px 0;display:block}
+.help .jh ul li{margin:5px 0;padding:0}
+.help .jh li::marker{color:var(--muted)}
+.help .jh .fig{margin:12px 0 4px}
+.help .jh .cap{text-align:center;color:var(--muted);font-size:14px;margin-top:2px}
+.help{gap:18px}
 .help .rule{border:0;border-top:1px solid var(--line);margin:0;width:100%}   /* buttons sit 10px apart instead of the 22px section gap */
 @media (prefers-reduced-motion: reduce){
   .themeline b.fresh{animation:none}
@@ -316,27 +336,14 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     <div class="help-head">
       <div>
         <h2 id="helpTitle">How to play</h2>
-        <p class="sub">Four words are jumbled together in one grid. <b>Change the tile colors until every color spells a real word.</b></p>
       </div>
       <button class="icon-btn" id="helpX" aria-label="Close"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
     </div>
 
-    <section class="step">
-      <h3><span class="n">1</span>Read one color at a time</h3>
-      <div class="fig stack" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
-      <p>To see what a color spells, read only the tiles of that color, left to right and top to bottom, like reading a page. Here the four <span class="chip c0">coral</span> tiles, read in order, spell <b>SPIN</b>.</p>
-      <p>The four words under the grid show what each color spells right now. They start as nonsense because the colors are mixed up.</p>
-    </section>
-
-    <section class="step">
-      <h3><span class="n">2</span>Tiles are linked in groups of four</h3>
-      <div class="fig" aria-hidden="true"><div class="mini" id="fig2"></div></div>
-      <p>Every tile belongs to a group of four, called a <b>pinwheel</b>. Here the dotted line joins one of them.</p>
-      <p><b>Each pinwheel always holds one tile of each color:</b> one coral, one yellow, one green and one blue. So every pinwheel gives exactly one letter to each of the four words.</p>
-    </section>
-
-    <section class="step">
-      <h3><span class="n">3</span>Tap to select, tap again to turn</h3>
+    <section class="jh">
+      <h3>Concept</h3>
+      <p>Four words are hidden in the grid, one for each color. Read a color's tiles left to right and top to bottom, like a page, to see what it spells. The words under the grid show what each color spells right now.</p>
+      <p>Tiles are linked in groups of four called <b>pinwheels</b>. Each pinwheel holds one tile of each color. Turning it moves its four colors one tile clockwise. The letters never move, so one turn changes one letter in every word.</p>
       <div class="fig" aria-hidden="true">
         <div class="pair">
           <div class="col"><span class="lab">Before</span><div class="mini" id="fig2a"></div><div class="strips" id="fig2as"></div></div>
@@ -344,38 +351,41 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
           <div class="col"><span class="lab">After</span><div class="mini" id="fig2b"></div><div class="strips" id="fig2bs"></div></div>
         </div>
       </div>
-      <p>Tap any tile to outline its pinwheel. Nothing changes yet, and the letter the pinwheel controls in each word is highlighted in the words under the grid.</p>
-      <p>Tap the same pinwheel again and its four colors each move one tile clockwise. It still has one of each color, just in different places.</p>
-      <p><b>The letters never move.</b> Only the colors change, so one turn changes one letter in all four words at once.</p>
-      <p>There is only one solution, and all four words fall into place at the same moment.</p>
+      <p class="cap">The dotted line joins one pinwheel. One turn of it, and all four words appear.</p>
     </section>
 
-    <section class="step">
-      <h3><span class="n">4</span>Striped tiles are already correct</h3>
-      <div class="fig" aria-hidden="true"><span class="one c0">S</span><span class="one c1">W</span><span class="one c2">E</span><span class="one c3">Y</span></div>
-      <p>A striped tile already has its correct color and will not change. The four corners always start striped.</p>
+    <section class="jh">
+      <h3>Rules</h3>
+      <ul>
+        <li>Make every color spell a real word. There is only one solution, and all four words fall into place at the same moment.</li>
+        <li>Striped tiles are already correct and never change. The four corners always start striped.</li>
+        <li>The theme above the grid is your clue.</li>
+      </ul>
     </section>
 
-    <section class="step">
+    <section class="jh">
       <h3>Controls</h3>
       <ul>
+        <li>Tap a tile to outline its pinwheel. The letters it controls are highlighted in the words under the grid. Tap it again to turn it.</li>
         <li><b>Hint</b> sets one pinwheel for you and stripes it.</li>
-        <li><b>Undo</b> takes back your last turn.</li>
-        <li><b>Reset</b> puts the colors back where they started.</li>
+        <li><b>Undo</b> takes back your last turn. <b>Reset</b> puts the colors back where they started.</li>
         <li><b>Par</b> is the fewest turns that solve the puzzle. Your turns are counted under the clock. Undo does not take a turn off the count.</li>
       </ul>
     </section>
 
-    <details class="tips">
-      <summary>Tips</summary>
+    <section class="jh">
+      <h3>Tips</h3>
       <ul>
-        <li><b>Start with the theme.</b> The four words share a theme, shown above the grid. Guess a word that fits it, then look for its letters in reading order.</li>
+        <li><b>Start with the theme.</b> Guess a word that fits it, then look for its letters in reading order.</li>
         <li><b>Use the corners.</b> The top-left letter starts the coral word and the bottom-right letter ends the green word. They never change.</li>
         <li><b>Top rows are beginnings, bottom rows are endings.</b> A letter in the top row is near the start of its word. One in the bottom row is near the end.</li>
       </ul>
-    </details>
+    </section>
 
-    <p class="note"><b>An actual secret code.</b> Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
+    <section class="jh">
+      <h3>Why "Pinwheel"?</h3>
+      <p>It's an actual secret code. Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
+    </section>
 
     <hr class="rule">
     <label class="opt"><input type="checkbox" id="quick"> Turn a pinwheel on the first tap (faster, skips the outline)</label>
@@ -384,7 +394,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 106</p>
+    <p class="ver">Version 122</p>
   </div>
 </dialog>
 
@@ -674,8 +684,6 @@ function strips(el, words, lit, ok){
     [...w].map((ch,x) => '<span'+(x === hl[k] ? ' class="h"' : '')+'>'+ch+'</span>').join('')+'</span><span class="tick">✓</span></div>').join('');
 }
 function drawHelp(){
-  strips($('fig1s'), mini($('fig1'), DEMO.s, {lit:0, num:true}), 0, false);
-  mini($('fig2'), DEMO.s, {team:1, fade:true});
   const before = DEMO.s.slice(); before[1] = (DEMO.s[1] + 1) & 3;
   strips($('fig2as'), mini($('fig2a'), before, {team:1, locked:true, hl:1}), null, false);
   strips($('fig2bs'), mini($('fig2b'), DEMO.s, {team:1, locked:true, hl:1}), null, true);

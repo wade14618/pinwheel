@@ -162,9 +162,16 @@ header{display:flex;align-items:center;gap:8px}
 /* v80: each word sits on its own color (no white box, no swatch); a selected pinwheel's letters sit on a lighter tint of the word's color */
 .read{background:var(--c);border-color:transparent;color:var(--tile-ink)}
 .read .sw{display:none}
-.read .word span.hl,.read .word span.flash{background:color-mix(in srgb, var(--c) 75%, white);color:inherit}
+.read .word span.hl,.read .word span.flash{background:color-mix(in srgb, var(--c) 70%, white);color:inherit}
+/* v102: yellow and green are already light, so their highlight needs more white to show as well as coral and blue */
+.read.c2 .word span.hl,.read.c2 .word span.flash{background:color-mix(in srgb, var(--c) 65%, white)}
+.read.c1 .word span.hl,.read.c1 .word span.flash{background:color-mix(in srgb, var(--c) 65%, white)}
 .strips .strip{background:var(--c);border-color:transparent;color:var(--tile-ink)}
 .strips .strip i{display:none}
+.strip .sw2{display:flex;gap:1px;letter-spacing:0}
+.strip .sw2 > span{display:inline-block;padding:0 2px;text-align:center}
+.strip .h{background:color-mix(in srgb, var(--c) 70%, white);border-radius:3px}   /* v106: step 3 shows the selected pinwheel's letters, as in the game */
+.strip.c1 .h,.strip.c2 .h{background:color-mix(in srgb, var(--c) 65%, white)}
 .reads[data-n="5"] .word{font-size:min(21px,4.7vw)}
 .reads[data-n="6"] .word{font-size:min(18px,3.7vw);letter-spacing:.03em}
 .read .ok{display:none}
@@ -249,7 +256,8 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .help .note{color:var(--muted);font-size:15px;line-height:1.5;border-top:1.5px solid var(--line);padding-top:18px;margin:0}
 .help .note b{color:var(--ink)}
 .help .btn,.help .btn.primary{padding:13px;font-size:16px}
-.help #replayTut,.help #wipe{margin-top:-12px}   /* buttons sit 10px apart instead of the 22px section gap */
+.help #replayTut,.help #wipe{margin-top:-12px}
+.help .rule{border:0;border-top:1px solid var(--line);margin:0;width:100%}   /* buttons sit 10px apart instead of the 22px section gap */
 @media (prefers-reduced-motion: reduce){
   .themeline b.fresh{animation:none}
   .logo-spin,.tile.spin,.tile.nope{animation:none}
@@ -317,7 +325,7 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
       <h3><span class="n">1</span>Read one color at a time</h3>
       <div class="fig stack" aria-hidden="true"><div class="mini" id="fig1"></div><div class="strips" id="fig1s"></div></div>
       <p>To see what a color spells, read only the tiles of that color, left to right and top to bottom, like reading a page. Here the four <span class="chip c0">coral</span> tiles, read in order, spell <b>SPIN</b>.</p>
-      <p>The four words under the grid show what each color spells right now. They start as nonsense because the colors are mixed up. You have solved it when all four are real words.</p>
+      <p>The four words under the grid show what each color spells right now. They start as nonsense because the colors are mixed up.</p>
     </section>
 
     <section class="step">
@@ -339,13 +347,13 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
       <p>Tap any tile to outline its pinwheel. Nothing changes yet, and the letter the pinwheel controls in each word is highlighted in the words under the grid.</p>
       <p>Tap the same pinwheel again and its four colors each move one tile clockwise. It still has one of each color, just in different places.</p>
       <p><b>The letters never move.</b> Only the colors change, so one turn changes one letter in all four words at once.</p>
-      <p>Keep turning pinwheels until all four words under the grid are real words. There is only one solution, and all four words fall into place at the same moment.</p>
+      <p>There is only one solution, and all four words fall into place at the same moment.</p>
     </section>
 
     <section class="step">
       <h3><span class="n">4</span>Striped tiles are already correct</h3>
       <div class="fig" aria-hidden="true"><span class="one c0">S</span><span class="one c1">W</span><span class="one c2">E</span><span class="one c3">Y</span></div>
-      <p>A striped tile already has its correct color and will not change. The four corners always start striped, so the top-left letter is always the first letter of its word.</p>
+      <p>A striped tile already has its correct color and will not change. The four corners always start striped.</p>
     </section>
 
     <section class="step">
@@ -369,13 +377,14 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 
     <p class="note"><b>An actual secret code.</b> Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
 
-    <label class="opt"><input type="checkbox" id="quick"> Turn a pinwheel on the first tap (faster, no preview)</label>
-    <label class="opt"><input type="checkbox" id="hideTheme"> Hide the theme until I tap it (harder)</label>
+    <hr class="rule">
+    <label class="opt"><input type="checkbox" id="quick"> Turn a pinwheel on the first tap (faster, skips the outline)</label>
+    <label class="opt"><input type="checkbox" id="hideTheme"> Hide the theme until I tap it (harder; tapping counts as a hint)</label>
     <label class="opt"><input type="checkbox" id="shapes"> Add a shape to each color (helps if colors are hard to tell apart)</label>
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 94</p>
+    <p class="ver">Version 106</p>
   </div>
 </dialog>
 
@@ -593,7 +602,7 @@ async function win(){
   paint(); $('controls').hidden = true;
   if (reduced){ chrome(); return; }
   const id = ++runId, board = $('board'), cele = $('cele');
-  await sleep(500); if (id !== runId) return;
+  await sleep(2600); if (id !== runId) return;   // let the last color sweep finish (0.6s), then hold the solved grid for two seconds
   board.classList.add('out'); await sleep(350); if (id !== runId) return;
   board.hidden = true; $('reads').hidden = true; cele.hidden = false;
   await sleep(4000); if (id !== runId) return;
@@ -653,19 +662,23 @@ function mini(el, ph, o){
   }
   if (o.team != null) el.insertAdjacentHTML('beforeend', '<svg class="link" viewBox="0 0 100 100"><polygon points="' +
     ob[o.team].map(c => ((c % 4 + .5) * 25) + ',' + ((Math.floor(c / 4) + .5) * 25)).join(' ') + '"/></svg>');
-  const w = ['','','','']; for (let c=0; c<16; c++) w[col[c]] += DEMO.g[c];
+  const w = ['','','',''], hl = [-1,-1,-1,-1];
+  for (let c=0; c<16; c++){ if (o.hl != null && ob[o.hl].includes(c)) hl[col[c]] = w[col[c]].length; w[col[c]] += DEMO.g[c]; }
+  w.hl = hl;   // position in each word of the letter the highlighted pinwheel controls
   return w;
 }
 function strips(el, words, lit, ok){
   el.className = 'strips' + (ok ? ' ok' : '');
-  el.innerHTML = words.map((w,k) => '<div class="strip c'+k+(lit != null && lit !== k ? ' dim' : '')+'"><i></i>'+w+'<span class="tick">✓</span></div>').join('');
+  const hl = words.hl || [];
+  el.innerHTML = words.map((w,k) => '<div class="strip c'+k+(lit != null && lit !== k ? ' dim' : '')+'"><i></i><span class="sw2">'+
+    [...w].map((ch,x) => '<span'+(x === hl[k] ? ' class="h"' : '')+'>'+ch+'</span>').join('')+'</span><span class="tick">✓</span></div>').join('');
 }
 function drawHelp(){
   strips($('fig1s'), mini($('fig1'), DEMO.s, {lit:0, num:true}), 0, false);
   mini($('fig2'), DEMO.s, {team:1, fade:true});
   const before = DEMO.s.slice(); before[1] = (DEMO.s[1] + 1) & 3;
-  strips($('fig2as'), mini($('fig2a'), before, {team:1, locked:true}), null, false);
-  strips($('fig2bs'), mini($('fig2b'), DEMO.s, {team:1, locked:true}), null, true);
+  strips($('fig2as'), mini($('fig2a'), before, {team:1, locked:true, hl:1}), null, false);
+  strips($('fig2bs'), mini($('fig2b'), DEMO.s, {team:1, locked:true, hl:1}), null, true);
 }
 function openHelp(){ wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh'; drawHelp(); $('help').showModal(); $('helpBody').scrollTop = 0; }
 $('helpBtn').onclick = openHelp;

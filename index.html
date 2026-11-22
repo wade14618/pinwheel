@@ -45,6 +45,8 @@ body::before{inset:0;background:var(--bgC)}
 body::after{right:-38vw;bottom:-26vh;width:max(110vw,480px);aspect-ratio:1;opacity:var(--wm);transform:rotate(-12deg);
   background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 -14 28 28"><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%23ff7a59"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%23ffc43d" transform="rotate(90)"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%233ecfb2" transform="rotate(180)"/><path d="M0 0 L0 -12 Q10 -12 10 -2 Z" fill="%237fa8ff" transform="rotate(270)"/></svg>') center/contain no-repeat}
 button{font:inherit;color:inherit;cursor:pointer}
+/* v131: no double-tap zoom anywhere (pinch zoom still works), as in Juggle v51 */
+html,body,button,.board,.reads,.read,.controls,.sizes,header,.coach,label{touch-action:manipulation}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .app{max-width:468px;margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:var(--appgap,12px)}
 .app .read{padding-block:var(--readpad,8px)}
@@ -398,7 +400,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 130</p>
+    <p class="ver">Version 131</p>
   </div>
 </dialog>
 
@@ -732,6 +734,7 @@ function sizeHelp(){
 addEventListener('resize', () => { if ($('help').open) sizeHelp(); });
 function openHelp(){ wipeArmed = false; $('wipe').textContent = 'Erase my progress and start fresh'; drawHelp(); $('help').showModal(); sizeHelp(); $('helpBody').scrollTop = 0; }
 $('helpBtn').onclick = openHelp;
+document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });   // v131
 let wipeArmed = false;
 $('wipe').onclick = () => {
   if (!wipeArmed){ wipeArmed = true; $('wipe').textContent = 'Tap again to erase everything'; return; }

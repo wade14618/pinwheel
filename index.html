@@ -398,7 +398,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 127</p>
+    <p class="ver">Version 128</p>
   </div>
 </dialog>
 
@@ -556,6 +556,11 @@ function fill(){
   const inBrowser = !navigator.standalone && !matchMedia('(display-mode: standalone)').matches && matchMedia('(pointer: coarse)').matches;
   const avail = Math.min(innerHeight, $('vh').offsetHeight || innerHeight) - $('sab').offsetHeight - 14 - (inBrowser ? 72 : 0);
   let spare = avail - bottom;
+  if (spare < 0 && S.done && !$('snaps').hidden){   // v128: the solved cards are too tall for the screen, so shrink them
+    const w = $('snaps').getBoundingClientRect().width;
+    document.body.style.setProperty('--bw', Math.max(240, Math.floor(w + spare)) + 'px');
+    return;
+  }
   if (spare < 4) return;
   const el = S.done ? $('snaps') : $('board');
   if (!el) return;

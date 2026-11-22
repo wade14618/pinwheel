@@ -63,7 +63,7 @@ header{display:flex;align-items:center;gap:8px}
 
 .stepper{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;font-variant-numeric:tabular-nums}
 .stepper button{flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);line-height:1}
-.stepper button:disabled{opacity:.35;cursor:default}
+.stepper button:disabled,.icon-btn:disabled{opacity:.35;cursor:default}
 .stepper .when{display:grid;justify-items:center;line-height:1.15;min-width:52px}
 .stepper .when b{font-weight:700;font-size:15px;white-space:nowrap}
 .stepper .date{color:var(--muted);font-weight:500;font-size:12.5px;white-space:nowrap}
@@ -398,7 +398,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 129</p>
+    <p class="ver">Version 130</p>
   </div>
 </dialog>
 
@@ -523,7 +523,7 @@ function chrome(){
   coach();
 }
 function coach(){
-  const c = $('coach'); c.hidden = !tut; document.body.classList.toggle('tut', tut); if (!tut){ fit(); return; }
+  const c = $('coach'); c.hidden = !tut; document.body.classList.toggle('tut', tut); $('helpBtn').disabled = tut;   /* v130: no help during the tutorial */ if (!tut){ fit(); return; }
   const T = [
     '<p><b>Welcome!</b> Four words hide in this grid, one per color. The words under the grid show what each color spells now. They start scrambled.</p><p>Striped tiles are already correct and never change. The theme, <b>Let\'s play</b>, is your clue.</p><div class="row"><button class="btn primary" id="tNext">Next</button></div>',
     '<p><b>Tap the W</b> in the top row.</p>',

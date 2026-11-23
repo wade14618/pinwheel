@@ -13,7 +13,7 @@
 <style>
 /* Layout idea: one narrow column, the board is the hero; four blade colors carry all meaning. */
 :root{
-  --bwd:min(420px, calc((min(100vw, 468px) - 32px) * .92)); /* board width: about 92% of the column, for side margins */
+  --bwd:min(420px, calc((min(100vw, 484px) - 48px) * .92)); /* board width: about 92% of the column, for side margins */
   --bg:#faf5ea; --surface:#ffffff; --ink:#131c33; --muted:#5d6780; --line:#d5dbe7;
   --c0:#ff7a59; --c1:#ffc43d; --c2:#3ecfb2; --c3:#7fa8ff; --tile-ink:#131c33;
   --stencil:#131c33; --stencil-edge:#2a3655;
@@ -48,7 +48,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* v131: no double-tap zoom anywhere (pinch zoom still works), as in Juggle v51 */
 html,body,button,.board,.reads,.read,.controls,.sizes,header,.coach,label{touch-action:manipulation}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.app{max-width:468px;margin:0 auto;padding:12px 16px calc(120px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:var(--appgap,12px)}
+.app{--side:24px;max-width:484px;margin:0 auto;padding:12px var(--side) calc(120px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:var(--appgap,12px)}
 .app .read{padding-block:var(--readpad,8px)}
 #vh{position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none}
 #sab{position:fixed;width:0;height:env(safe-area-inset-bottom, 0px);visibility:hidden;pointer-events:none}
@@ -87,7 +87,7 @@ header{display:flex;align-items:center;gap:8px}
 @keyframes dotsgo{to{transform:rotate(360deg) scale(0);opacity:0}}
 .themeline b.fresh{animation:themein .35s ease-out}
 @keyframes themein{from{opacity:0;transform:scale(.9)}}
-.board-wrap{display:flex;justify-content:center}
+.board-wrap{display:flex;justify-content:center;align-items:center}
 .board{--gap:7px;position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);gap:var(--gap);width:var(--bw, var(--bwd));aspect-ratio:1}
 .board[data-n="6"]{--gap:6px}
 .tile{position:relative;border:0;padding:0;border-radius:20%;background:var(--c);color:var(--tile-ink);
@@ -111,7 +111,7 @@ header{display:flex;align-items:center;gap:8px}
 .snap{margin:0;display:grid;gap:8px}
 .sb{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:3px;background:var(--stencil);padding:5px;border-radius:12px;border:1.5px solid var(--stencil-edge)}
 .sb i{aspect-ratio:1;border-radius:20%;background:var(--c);color:var(--tile-ink);display:grid;place-items:center;font-style:normal;font-weight:800;
-  font-size:calc(var(--bw, min(420px, 100vw - 32px)) / 2 / var(--n) * .5)}
+  font-size:calc(var(--bw, min(420px, 100vw - 48px)) / 2 / var(--n) * .5)}
 .sb i.off{background:none;color:transparent}
 .sb i.gap{background:none}
 .snap figcaption{display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;letter-spacing:.08em;font-size:16px}
@@ -185,18 +185,27 @@ header{display:flex;align-items:center;gap:8px}
 .read .ok{margin-left:auto;font-weight:800;opacity:0;transition:opacity .3s}
 .solved .read .ok{opacity:1}
 
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.controls.done .clock{order:-1;flex-basis:100%;margin:0 0 2px;text-align:center}
-.controls.done .share{margin-left:auto}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:center}   /* v137: one layout for playing and solved */
+.controls .btn{padding-inline:6px;white-space:nowrap}
+
+.tile.cel-flip{animation:celFlip .9s ease-in-out both;animation-delay:calc(var(--d) * 120ms)}
+@keyframes celFlip{0%{transform:perspective(500px) rotateY(0)}100%{transform:perspective(500px) rotateY(360deg)}}
+.tile.cel-pop,.read.cel-pop{animation:celPop .8s ease-in-out both;animation-delay:calc(var(--d) * 550ms);z-index:2}
+@keyframes celPop{0%,100%{transform:none}40%{transform:translateY(-14%) scale(1.16)}}
+.read.cel-pop{animation-name:celPopR}
+@keyframes celPopR{0%,100%{transform:none}40%{transform:scale(1.06)}}
+.tile.cel-spin{animation:celSpin .9s ease-in-out both;animation-delay:calc(var(--d) * 320ms)}
+@keyframes celSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+body.solved .tile{cursor:default}
+.controls .clock{order:-1;grid-column:1/-1;margin:0 0 2px;text-align:center}
+.clock b{color:var(--ink);font-weight:700}
 .btn{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 16px;font-weight:600;font-size:15px}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.share{padding:9px 12px;display:grid;place-items:center}
-.copied{font-size:13px;font-weight:600;color:var(--muted)}
-.copied:empty{display:none}
-.clock{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right;line-height:1.25}
-.clock small{display:block;font-size:13px;font-weight:500}
-.controls.done .clock small{display:inline;font-size:inherit;font-weight:inherit}
+.copied{display:none}
+.clock{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);text-align:right;line-height:1.25}
+
 
 .result{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:18px;display:grid;gap:12px}
 .result[hidden]{display:none}
@@ -326,13 +335,13 @@ dialog::backdrop{background:transparent}
 
   <div class="controls" id="controls">
     <button class="btn primary" id="nextPuzzle" hidden>Next puzzle</button>
+    
     <button class="btn" id="again" hidden>Play again</button>
+    <button class="btn" id="cipher" hidden>Show cipher</button>   <!-- v138: third button; share removed -->
     <button class="btn" id="hint">Hint</button>
     <button class="btn" id="undo">Undo</button>
     <button class="btn" id="reset">Reset</button>
     <span class="clock" id="clock">0:00</span>
-    <button class="btn share" id="copy" aria-label="Copy your result to share" hidden><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9h-1a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-8a2 2 0 0 0 -2 -2h-1"/><path d="M12 14v-11"/><path d="M9 6l3 -3l3 3"/></svg></button>
-    <span class="copied" id="copied" aria-live="polite"></span>
   </div>
 
 </div>
@@ -400,7 +409,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 133</p>
+    <p class="ver">Version 141</p>
   </div>
 </dialog>
 
@@ -441,8 +450,9 @@ const TUT = { n:4, g:'SWPOGALMPRINADYE', s:'0132', i:'0203', w:['SPIN','WORD','G
 // Guided steps. pin: the only pinwheel that may be tapped; cell: the tile the coach names.
 // Steps 1,3,5 wait for a select; 2,4,6 for a turn.
 const TUT_STEP = { 1:{pin:1,cell:1}, 2:{pin:1}, 3:{pin:3,cell:9}, 4:{pin:3}, 5:{pin:2,cell:13}, 6:{pin:2} };
+let showCipher = false;   // v134: after a win the solved grid stays; this flips to the four cipher cards
 function load(){
-  runId++; clearInterval(tick); tick = null; sel = null;
+  runId++; clearInterval(tick); tick = null; sel = null; showCipher = false;
   if (tut){ n = 4; P = TUT; }
   else { const list = BANK[n]; day = Math.min(day, list.length - 1); P = list[day]; store.set('last', {n, i: day}); store.set('at', {...(store.get('at') || {}), [n]: day}); }
   orb = orbits(n); cellOrb = {};
@@ -513,11 +523,14 @@ function chrome(){
   $('themeTag').textContent = veiled ? 'Theme · tap to reveal' : 'Theme';
   if (veiled){ tl.setAttribute('role','button'); tl.tabIndex = 0; tl.setAttribute('aria-label','Reveal the theme. Counts as a hint.'); }
   else { tl.removeAttribute('role'); tl.removeAttribute('tabindex'); tl.removeAttribute('aria-label'); }
-  $('hint').hidden = S.done; $('undo').hidden = S.done; $('reset').hidden = S.done; $('again').hidden = !S.done; $('nextPuzzle').hidden = !S.done || day >= BANK[n].length - 1; $('copy').hidden = !S.done;
-  $('controls').hidden = false; $('copied').textContent = '';
-  $('board').hidden = S.done; $('reads').hidden = S.done; $('snaps').hidden = !S.done;
-  if (S.done) snaps();
-  lede(S.done ? 'A centuries-old cipher: One pattern of holes unlocks all four words, a quarter turn at a time.' : '');
+  $('hint').hidden = S.done; $('undo').hidden = S.done; $('reset').hidden = S.done; $('again').hidden = !S.done; $('nextPuzzle').hidden = !S.done; $('nextPuzzle').style.visibility = day >= BANK[n].length - 1 ? 'hidden' : '';
+  $('controls').hidden = false;
+  const cards = S.done && (tut || showCipher);   // the tutorial still ends on the cards
+  $('board').hidden = cards; $('reads').hidden = cards; $('snaps').hidden = !cards;
+  if (cards) snaps();
+  $('cipher').hidden = tut || !S.done; $('cipher').textContent = showCipher ? 'Show grid' : 'Show cipher';
+  document.body.classList.toggle('solved', S.done && !cards);
+  lede(cards ? 'A centuries-old cipher: One pattern of holes unlocks all four words, a quarter turn at a time.' : '');
   if (tut){
     $('num').textContent = 'Tutorial'; $('date').innerHTML = S.done ? '' : '<button class="skip" id="tSkip">Skip</button>'; $('prev').disabled = $('next').disabled = true;
     $('controls').hidden = true;
@@ -550,22 +563,49 @@ function coach(){
 }
 // v124: outside the tutorial, use the spare height on tall screens (Home Screen app, big phones).
 // First the board grows toward the full column width, then the leftover goes to the spacing and word boxes.
-function fill(){
-  const st = $('app').style; st.removeProperty('--appgap'); st.removeProperty('--readpad');
+// v136: the grid and words keep one size and place for the whole game: while playing, room is kept for the
+// taller solved controls (Solved line, Next puzzle / Play again / share, Show the cipher), measured off-screen.
+function doneControlsExtra(){
+  const c = $('controls'), kids = [...c.children], was = kids.map(k => k.hidden), hadDone = c.classList.contains('done');
+  const before = c.offsetHeight, clockTxtWas = $('clock').innerHTML;
+  c.classList.add('done');
+  for (const id of ['hint','undo','reset']) $(id).hidden = true;
+  for (const id of ['again','nextPuzzle','cipher','clock']) $(id).hidden = false;
+  $('clock').textContent = 'Solved in 99 turns (par 9) · 9:99 · 9 hints';
+  const after = c.offsetHeight;
+  kids.forEach((k, i) => k.hidden = was[i]); c.classList.toggle('done', hadDone); $('clock').innerHTML = clockTxtWas;
+  return Math.max(0, after - before);
+}
+let gridView = null;   // v138: {span, gap} of the grid view, so the cipher cards fill the same space
+function fill(){ fillSize(); if (!$('board').hidden && $('snaps').hidden){ const t = $('board-wrap').getBoundingClientRect().top, b = $('reads').getBoundingClientRect().bottom; gridView = {span: b - t, gap: getComputedStyle($('app')).rowGap}; } }
+function fitCards(){
+  // The cards, plus the caption under them, take exactly the grid view's space, so the status line and buttons stay put.
+  $('app').style.setProperty('--appgap', gridView.gap);
+  const cap = $('caption'), capH = cap.hidden ? 0 : cap.offsetHeight + parseFloat(gridView.gap);
+  const H = gridView.span - capH, wrap = $('board-wrap'), el = $('snaps');
+  wrap.style.height = H + 'px';
+  const col = $('app').clientWidth - 2 * parseFloat(getComputedStyle($('app')).paddingLeft);
+  for (let k = 0; k < 2; k++){
+    const w = el.getBoundingClientRect().width, h = el.getBoundingClientRect().height;
+    document.body.style.setProperty('--bw', Math.max(200, Math.min(col, Math.floor(w + (H - h)))) + 'px');
+  }
+}
+function fillSize(){
+  const st = $('app').style; st.removeProperty('--appgap'); st.removeProperty('--readpad'); $('board-wrap').style.height = '';
+  const cards = !$('snaps').hidden;
+  if (cards && S.done && gridView){ fitCards(); return; }
   const ref = !$('controls').hidden ? $('controls') : ($('nextPuzzle').hidden ? $('reads') : $('nextPuzzle'));
-  const bottom = ref.getBoundingClientRect().bottom + scrollY;
-  const avail = Math.min(innerHeight, $('vh').offsetHeight || innerHeight) - $('sab').offsetHeight - 14;   // v129: no extra room for Safari's bar (v127-128 kept 72px; Safari's innerHeight already stops above it)
+  const bottom = ref.getBoundingClientRect().bottom + scrollY + (!S.done && !$('controls').hidden ? doneControlsExtra() : 0);
+  const avail = Math.min(innerHeight, $('vh').offsetHeight || innerHeight) - $('sab').offsetHeight - 14;   // v129: no extra room for Safari's bar
   let spare = avail - bottom;
-  if (spare < 0 && S.done && !$('snaps').hidden){   // v128: the solved cards are too tall for the screen, so shrink them
-    const w = $('snaps').getBoundingClientRect().width;
+  const el = cards ? $('snaps') : $('board');
+  const w = el.getBoundingClientRect().width, col = $('app').clientWidth - 2 * parseFloat(getComputedStyle($('app')).paddingLeft);
+  if (!w) return;
+  if (spare < 0){   // v128/v136: too tall for the screen, so shrink the grid (or the solved cards)
     document.body.style.setProperty('--bw', Math.max(240, Math.floor(w + spare)) + 'px');
     return;
   }
   if (spare < 4) return;
-  const el = S.done ? $('snaps') : $('board');
-  if (!el) return;
-  const w = el.getBoundingClientRect().width, col = $('app').clientWidth - 32;
-  if (!w) return;
   const grow = Math.max(0, Math.min(col - w, spare));
   if (grow > 2){ document.body.style.setProperty('--bw', Math.floor(w + grow) + 'px'); spare -= grow; }
   if (spare > 4){
@@ -580,6 +620,7 @@ if (document.fonts) document.fonts.ready.then(() => { if (!tut) fit(); });
 let tutBw = null;   // board width used during the guided steps; the solved cards reuse it so nothing jumps in size
 function fit(){
   document.body.style.removeProperty('--bw'); $('app').style.removeProperty('--appgap'); $('app').style.removeProperty('--readpad');
+  $('board-wrap').style.height = '';   // v141: the cipher view's fixed height must not carry into the tutorial
   if (!tut){ tutBw = null; fill(); return; }
   if (S.done && tutBw) document.body.style.setProperty('--bw', tutBw + 'px');
   for (let k = 0; k < 2; k++){
@@ -645,27 +686,37 @@ function snaps(){
   }).join('');
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// v135: three celebrations to compare (Mark asked for flip, word by word, pinwheel spin). Temporary "Try" buttons replay each.
+let celKind = 'flip';   // v136: Mark chose the flip
+function celebrate(kind){
+  const els = [];
+  for (let cell = 0; cell < n*n; cell++){
+    if (!(cell in cellOrb)) continue;
+    const t = tileEl(cell), r = Math.floor(cell / n), c = cell % n;
+    const d = kind === 'flip' ? r + c : kind === 'words' ? colorOf(cell) : cellOrb[cell][0];
+    t.style.setProperty('--d', d); t.classList.add('cel-' + (kind === 'words' ? 'pop' : kind)); els.push(t);
+  }
+  if (kind === 'words') $('reads').querySelectorAll('.read').forEach(r => { r.style.setProperty('--d', r.dataset.k); r.classList.add('cel-pop'); els.push(r); });
+  const ms = kind === 'flip' ? (2*n - 2) * 120 + 950 : kind === 'words' ? 3 * 550 + 850 : (orb.length - 1) * 320 + 950;
+  return sleep(ms).then(() => els.forEach(e => e.classList.remove('cel-flip', 'cel-pop', 'cel-spin')));
+}
 async function win(){
+  // v134: no spinning pinwheel. The solved grid stays; a short celebration plays on it, then the result and buttons appear.
   S.done = true; sel = null; clearInterval(tick); tick = null; save();
   document.querySelectorAll('.tile').forEach(t => t.classList.remove('mate'));
-  paint(); $('controls').hidden = true;
-  if (reduced){ chrome(); return; }
-  const id = ++runId, board = $('board'), cele = $('cele');
-  await sleep(2100); if (id !== runId) return;   // let the last color sweep finish (0.6s), then hold the solved grid for 1.5 seconds
-  board.classList.add('out'); await sleep(350); if (id !== runId) return;
-  board.hidden = true; $('reads').hidden = true; cele.hidden = false;
-  await sleep(4000); if (id !== runId) return;
-  cele.hidden = true; board.classList.remove('out'); chrome();
-  if ($('help').open) sizeHelp();   // v125: the Next puzzle row just appeared
+  paint();
+  if (tut){ $('controls').hidden = true; if (!reduced) await sleep(700); chrome(); return; }
+  chrome();   // v140: the status line and buttons switch to Solved in place, with no blank moment
+  if ($('help').open) sizeHelp();
+  if (reduced) return;
+  const id = ++runId;
+  await sleep(950); if (id !== runId) return;   // let the last color sweep finish
+  celebrate(celKind);
 }
 function clockTxt(){
   const c = $('clock');
-  if (S.done) c.textContent = 'Solved in ' + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) + ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
-  else c.innerHTML = fmt(S.secs) + '<small>' + turnsTxt(S.turns) + ' · par ' + par() + '</small>';
-}
-function shareText(){
-  return 'Pinwheel No. ' + (day+1) + ' · ' + SIZES[n] + ' ' + n + '×' + n + '\n🟧🟨🟩🟦 ' + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) +
-    ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
+  // v137: the same line while playing and when solved; solved adds a bold "Solved!"
+  c.innerHTML = (S.done ? '<b>Solved!</b> ' : '') + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) + ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
 }
 
 $('hint').onclick = () => {
@@ -730,7 +781,7 @@ function drawHelp(){
 }
 // v123: the help window reaches down just past the clock and par line on the main screen.
 function sizeHelp(){
-  let ref = !$('controls').hidden ? (S.done ? $('controls') : $('clock')) : $('reads');   // v125: after a win, cover the Next puzzle row too
+  let ref = !$('controls').hidden ? (S.done ? $('controls') : $('reset')) : $('reads');   // v137: the status line now sits above the buttons, so cover the Hint row   // v125: after a win, cover the Next puzzle row too
   if (!ref.offsetHeight) ref = $('board-wrap') || $('cele');   // mid-celebration
   const bottom = Math.min(innerHeight - 15, ref.getBoundingClientRect().bottom + 10);
   const top = $('help').getBoundingClientRect().top;
@@ -754,12 +805,8 @@ $('helpX').onclick = () => $('help').close();
 $('help').addEventListener('click', e => { if (e.target === $('help')) $('help').close(); });
 $('help').addEventListener('close', () => { clearTimeout(demoTimer); store.set('seenHelp', 1); });
 $('help').addEventListener('cancel', () => {});
+$('cipher').onclick = () => { showCipher = !showCipher; chrome(); if ($('help').open) sizeHelp(); };
 $('again').onclick = () => { if (tut) return; store.set(key(), null); load(); };
-$('copy').onclick = async () => {
-  let msg = 'Copied';
-  try { await navigator.clipboard.writeText(shareText()); } catch(e){ msg = "Couldn't copy"; }
-  $('copied').textContent = msg; setTimeout(() => $('copied').textContent = '', 1800);
-};
 $('shapes').checked = !!store.get('shapes'); document.body.classList.toggle('shapes', $('shapes').checked);
 $('shapes').onchange = () => { store.set('shapes', $('shapes').checked); document.body.classList.toggle('shapes', $('shapes').checked); };
 $('quick').checked = !!store.get('quick');

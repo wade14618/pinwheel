@@ -188,14 +188,15 @@ header{display:flex;align-items:center;gap:8px}
 .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:center}   /* v137: one layout for playing and solved */
 .controls .btn{padding-inline:6px;white-space:nowrap}
 
-.tile.cel-flip{animation:celFlip .9s ease-in-out both;animation-delay:calc(var(--d) * 120ms)}
+.tile.cel-flip{animation:celFlip 1.2s ease-in-out both;animation-delay:calc(var(--d) * 180ms)}   /* v153: slower wave (was .9s, 120ms apart) */
 @keyframes celFlip{0%{transform:perspective(500px) rotateY(0)}100%{transform:perspective(500px) rotateY(360deg)}}
-.tile.cel-pop,.read.cel-pop{animation:celPop .8s ease-in-out both;animation-delay:calc(var(--d) * 550ms);z-index:2}
-@keyframes celPop{0%,100%{transform:none}40%{transform:translateY(-14%) scale(1.16)}}
-.read.cel-pop{animation-name:celPopR}
-@keyframes celPopR{0%,100%{transform:none}40%{transform:scale(1.06)}}
-.tile.cel-spin{animation:celSpin .9s ease-in-out both;animation-delay:calc(var(--d) * 320ms)}
-@keyframes celSpin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.read.cel-glow{animation:celGlow .9s ease-in-out both;animation-delay:var(--wd)}
+@keyframes celGlow{0%,100%{filter:none;transform:none}45%{filter:brightness(1.18) saturate(1.1);transform:scale(1.04)}}
+.brand svg.whirl{animation:whirl 3.2s cubic-bezier(.15,.6,.25,1) both;transform-origin:50% 50%}
+@keyframes whirl{from{rotate:0deg}to{rotate:1080deg}}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+.confetti i{position:absolute;top:-24px;border-radius:2px;animation:fall var(--fall) cubic-bezier(.3,.1,.6,1) var(--delay) both}
+@keyframes fall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--sway),110vh) rotate(var(--spin))}}
 body.solved .tile{cursor:default}
 .controls .clock{order:-1;grid-column:1/-1;margin:0 0 2px;text-align:center}
 .clock b{color:var(--ink);font-weight:700}
@@ -409,7 +410,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 141</p>
+    <p class="ver">Version 154</p>
   </div>
 </dialog>
 
@@ -687,18 +688,37 @@ function snaps(){
 }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 // v135: three celebrations to compare (Mark asked for flip, word by word, pinwheel spin). Temporary "Try" buttons replay each.
-let celKind = 'flip';   // v136: Mark chose the flip
-function celebrate(kind){
-  const els = [];
+// v152/v153: the flip (mirrored letters while facing away); each word box brightens as its last letter lands;
+// the header pinwheel whirls; slow confetti every win; a par solve with no hints says "Perfect!".
+function celebrate(){
+  const els = [], wordEnd = [0, 0, 0, 0];
   for (let cell = 0; cell < n*n; cell++){
     if (!(cell in cellOrb)) continue;
-    const t = tileEl(cell), r = Math.floor(cell / n), c = cell % n;
-    const d = kind === 'flip' ? r + c : kind === 'words' ? colorOf(cell) : cellOrb[cell][0];
-    t.style.setProperty('--d', d); t.classList.add('cel-' + (kind === 'words' ? 'pop' : kind)); els.push(t);
+    const t = tileEl(cell), d = Math.floor(cell / n) + cell % n;
+    t.style.setProperty('--d', d); t.classList.add('cel-flip'); els.push(t);
+    const k = colorOf(cell); wordEnd[k] = Math.max(wordEnd[k], d);
   }
-  if (kind === 'words') $('reads').querySelectorAll('.read').forEach(r => { r.style.setProperty('--d', r.dataset.k); r.classList.add('cel-pop'); els.push(r); });
-  const ms = kind === 'flip' ? (2*n - 2) * 120 + 950 : kind === 'words' ? 3 * 550 + 850 : (orb.length - 1) * 320 + 950;
-  return sleep(ms).then(() => els.forEach(e => e.classList.remove('cel-flip', 'cel-pop', 'cel-spin')));
+  $('reads').querySelectorAll('.read').forEach(r => {
+    r.style.setProperty('--wd', (wordEnd[+r.dataset.k] * 180 + 1050) + 'ms'); r.classList.add('cel-glow'); els.push(r);
+  });
+  const mark = document.querySelector('.brand svg'); mark.classList.add('whirl'); els.push(mark);
+  return sleep((2*n - 2) * 180 + 2000).then(() => {
+    els.forEach(e => e.classList.remove('cel-flip', 'cel-glow', 'whirl'));
+  });
+}
+const perfect = () => S.done && !S.hints && S.turns <= par();
+// v154: hinted every pinwheel that started out wrong
+const busted = () => S.done && S.hints > 0 && S.hints >= orb.filter((_, i) => +P.i[i] !== +P.s[i]).length;
+function confetti(){
+  const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
+  const cols = ['var(--c0)', 'var(--c1)', 'var(--c2)', 'var(--c3)'];
+  for (let i = 0; i < 70; i++){
+    const p = document.createElement('i');
+    p.style.cssText = `left:${Math.random()*100}%;background:${cols[i % 4]};--fall:${3.6 + Math.random()*2}s;--delay:${Math.random()*1.4}s;--sway:${(Math.random()*2 - 1) * 40}px;--spin:${(Math.random() < .5 ? -1 : 1) * (360 + Math.random()*540)}deg;width:${7 + Math.random()*5}px;height:${10 + Math.random()*6}px`;
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 7500);
 }
 async function win(){
   // v134: no spinning pinwheel. The solved grid stays; a short celebration plays on it, then the result and buttons appear.
@@ -711,12 +731,13 @@ async function win(){
   if (reduced) return;
   const id = ++runId;
   await sleep(950); if (id !== runId) return;   // let the last color sweep finish
-  celebrate(celKind);
+  confetti();   // v153: confetti on every win
+  celebrate();
 }
 function clockTxt(){
   const c = $('clock');
   // v137: the same line while playing and when solved; solved adds a bold "Solved!"
-  c.innerHTML = (S.done ? '<b>Solved!</b> ' : '') + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) + ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
+  c.innerHTML = (S.done ? (perfect() ? '<b>Perfect!</b> ' : busted() ? '<b>Busted! 😂</b> ' : '<b>Solved!</b> ') : '') + turnsTxt(S.turns) + ' (par ' + par() + ') · ' + fmt(S.secs) + ' · ' + (S.hints ? S.hints + (S.hints === 1 ? ' hint' : ' hints') : 'no hints');
 }
 
 $('hint').onclick = () => {

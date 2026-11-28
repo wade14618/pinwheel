@@ -133,6 +133,7 @@ header{display:flex;align-items:center;gap:8px}
   -webkit-mask-image:linear-gradient(var(--ang), transparent var(--wp), #000 var(--wp));mask-image:linear-gradient(var(--ang), transparent var(--wp), #000 var(--wp));
   animation:wipe .6s ease-in-out forwards}
 @keyframes wipe{from{--wp:0%}to{--wp:100%}}
+.tut .tile.wipe::before{animation-duration:1.2s}   /* v164: tutorial turns at half speed */
 @keyframes spin{0%{transform:scale(1)}35%{transform:scale(.8) rotate(28deg)}100%{transform:scale(1)}}
 .tile.nope{animation:nope .3s}
 @keyframes nope{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
@@ -150,12 +151,20 @@ header{display:flex;align-items:center;gap:8px}
 /* v155: blue word bottom-left, green bottom-right, so the four go round clockwise like the pinwheel logo */
 .reads>.c2,.strips>.c2{order:4}
 /* tutorial (v56) */
-.coach{background:var(--surface);border:1.5px solid var(--ink);border-radius:16px;padding:12px 14px;font-size:15.5px;line-height:1.38;display:grid;gap:8px;align-content:start}
+.coach{background:var(--surface);border:1.5px solid var(--ink);border-radius:16px;padding:12px 14px;font-size:15.5px;line-height:1.38;display:flex;flex-direction:column;gap:8px}
 .coach p{margin:0}
+/* v180: one-time announcement for existing players */
+/* v181: a full-screen veil blocks every other tap until the player answers; the card sits centered on the grid */
+.news-veil{position:fixed;inset:0;z-index:50;background:rgba(19,28,51,.28);touch-action:none}
+.news-veil[hidden]{display:none}
+.news{position:absolute;left:50%;top:var(--ny, 50%);transform:translate(-50%,-50%);width:min(440px, calc(100% - 32px));background:var(--surface);border:1.5px solid var(--ink);border-radius:16px;padding:14px;font-size:15.5px;line-height:1.38;box-shadow:0 10px 30px rgba(0,0,0,.22);z-index:50;display:grid;gap:12px}
+.news p{margin:0}
+.news .row{display:flex;justify-content:space-between;gap:8px}
 .tut .sizes,.tut .caption{display:none!important}
 .stepper .skip{width:auto;height:auto;min-width:0;border:0;background:none;border-radius:0;box-shadow:none;display:inline;line-height:1.2}
 .tut .app{padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px))}
-.coach .row{display:flex;gap:8px;align-items:center}
+.coach .row{display:flex;gap:8px;align-items:center;margin-top:auto}   /* v169: buttons sit at the bottom of the card */
+.coach #tBack{margin-left:auto}   /* v169: Next bottom left, Back bottom right */
 .skip{background:none;border:0;color:var(--muted);font-weight:600;font-size:12.5px;text-decoration:underline;padding:0}
 
 
@@ -201,6 +210,7 @@ header{display:flex;align-items:center;gap:8px}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--sway),110vh) rotate(var(--spin))}}
 body.solved .tile{cursor:default}
 .controls .clock{order:-1;grid-column:1/-1;margin:0 0 2px;text-align:center}
+.cipherview .controls .clock{display:none}   /* v184: room for the cipher explanation */
 .clock b{color:var(--ink);font-weight:700}
 .btn{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 16px;font-weight:600;font-size:15px}
 .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -304,6 +314,10 @@ dialog::backdrop{background:transparent}
 </head>
 <body>
 <div id="vh"></div><div id="sab"></div>
+<div class="news-veil" id="news" hidden><div class="news" role="alertdialog" aria-modal="true" aria-labelledby="newsText">
+  <p id="newsText"><b>New!</b> The tutorial has been improved. Want to take a look?</p>
+  <div class="row"><button class="btn primary" id="newsTry">Try it</button><button class="btn" id="newsNo">No thanks</button></div>
+</div></div>
 <div class="app" id="app">
   <header>
     <div class="brand">
@@ -360,8 +374,8 @@ dialog::backdrop{background:transparent}
 
     <section class="jh">
       <h3>Concept</h3>
-      <p>Four words are hidden in the grid, one for each color. Read a color's tiles left to right and top to bottom, like a page, to see what it spells. The words under the grid show what each color spells right now.</p>
-      <p>Tiles are linked in groups of four called <b>pinwheels</b>. Each pinwheel holds one tile of each color. Turning it moves its four colors one tile clockwise. The letters never move, so one turn changes one letter in every word.</p>
+      <p>Four words are hidden in the grid, one for each color. Read a color's tiles left to right and top to bottom, like a page, to see what it spells. The bars under the grid show what each color spells right now.</p>
+      <p>Tiles are linked in groups of four called <b>pinwheels</b>. Each pinwheel holds one tile of each color. Turning it moves its four colors one tile clockwise. The letters never move, so one turn changes one letter in each bar.</p>
       <div class="fig" aria-hidden="true">
         <div class="pair">
           <div class="col"><span class="lab">Before</span><div class="mini" id="fig2a"></div><div class="strips" id="fig2as"></div></div>
@@ -384,10 +398,10 @@ dialog::backdrop{background:transparent}
     <section class="jh">
       <h3>Controls</h3>
       <ul>
-        <li>Tap a tile to outline its pinwheel. The letters it controls are highlighted in the words under the grid. Tap it again to turn it.</li>
-        <li><b>Hint</b> sets one pinwheel for you and stripes it.</li>
+        <li>Tap a tile to outline its pinwheel. The letters it controls are highlighted in the bars under the grid. Tap it again to turn it.</li>
+        <li><b>Hint</b> turns one pinwheel into place and stripes it, so it can't be turned again.</li>
         <li><b>Undo</b> takes back your last turn. <b>Reset</b> puts the colors back where they started.</li>
-        <li><b>Par</b> is the fewest turns that solve the puzzle. Your turns are counted under the clock. Undo does not take a turn off the count.</li>
+        <li><b>Par</b> is the fewest turns that solve the puzzle. Your turns, time and hints appear above the buttons. Undo does not take a turn off the count. Solve at or under par with no hints for a <b>Perfect</b>.</li>
       </ul>
     </section>
 
@@ -402,7 +416,8 @@ dialog::backdrop{background:transparent}
 
     <section class="jh">
       <h3>Why "Pinwheel"?</h3>
-      <p>It's an actual secret code. Pinwheel comes from the Turning Grille, a cipher used to hide messages for hundreds of years. A card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
+      <p>It's an actual secret code. The game is based on the Turning Grille, a cipher used to hide messages for hundreds of years. A decoder card with holes was laid over a grid of letters. The holes showed part of the message, and each quarter turn of the card showed more.</p>
+      <p>In the game, each color is one turn of that decoder card. Coral is the card upright, and each color after it is one more quarter turn clockwise. Solving the puzzle cuts the card. After you solve, tap <b>Show cipher</b> to see it.</p>
     </section>
 
     <hr class="rule">
@@ -412,7 +427,7 @@ dialog::backdrop{background:transparent}
     <button class="btn primary" id="helpClose">Let's play</button>
     <button class="btn" id="replayTut">Play the tutorial</button>
     <button class="btn" id="wipe">Erase my progress and start fresh</button>
-    <p class="ver">Version 162</p>
+    <p class="ver">Version 187</p>
   </div>
 </dialog>
 
@@ -453,9 +468,21 @@ const TUT = { n:4, g:'SWPOGALMPRINADYE', s:'0132', i:'0203', w:['SPIN','WORD','G
 // Guided steps. pin: the only pinwheel that may be tapped; cell: the tile the coach names.
 // Steps 1,3,5 wait for a select; 2,4,6 for a turn.
 const TUT_STEP = { 1:{pin:1,cell:1}, 2:{pin:1}, 3:{pin:3,cell:9}, 4:{pin:3}, 5:{pin:2,cell:13}, 6:{pin:2} };
+let tutSnaps = [];   // v168: one snapshot per tutorial step, so Back can undo it
+const tutPush = () => tutSnaps.push({tstep, ph: [...S.ph], sel, turns: S.turns, hist: [...S.hist], done: S.done, cipher: showCipher});
+function tutBackStep(){
+  const s = tutSnaps.pop(); if (!s) return;
+  runId++;   // cancels a pending win celebration
+  const changed = S.ph.findIndex((p, i) => p !== s.ph[i]), olds = changed >= 0 ? orb[changed].map(colorOf) : null;
+  $('coach').style.minHeight = '';   // v186: re-measure the card for the step we return to
+  tstep = s.tstep; S.ph = s.ph; sel = s.sel; S.turns = s.turns; S.hist = s.hist; S.done = s.done; showCipher = s.cipher;
+  document.querySelectorAll('.cel-glow,.whirl').forEach(e => e.classList.remove('cel-glow', 'whirl'));
+  paint(); chrome();
+  if (changed >= 0) wipeIn(changed, olds, true);   // the colors sweep back the way they came
+}
 let showCipher = false;   // v134: after a win the solved grid stays; this flips to the four cipher cards
 function load(){
-  runId++; clearInterval(tick); tick = null; sel = null; showCipher = false;
+  runId++; clearInterval(tick); tick = null; sel = null; showCipher = false; tutSnaps = [];
   if (tut){ n = 4; P = TUT; }
   else { const list = BANK[n]; day = Math.min(day, list.length - 1); P = list[day]; store.set('last', {n, i: day}); store.set('at', {...(store.get('at') || {}), [n]: day}); }
   orb = orbits(n); cellOrb = {};
@@ -530,12 +557,12 @@ function chrome(){
   else { tl.removeAttribute('role'); tl.removeAttribute('tabindex'); tl.removeAttribute('aria-label'); }
   $('hint').hidden = S.done; $('undo').hidden = S.done; $('reset').hidden = S.done; $('again').hidden = !S.done; $('nextPuzzle').hidden = !S.done; $('nextPuzzle').style.visibility = day >= BANK[n].length - 1 ? 'hidden' : '';
   $('controls').hidden = false;
-  const cards = S.done && (tut || showCipher);   // the tutorial still ends on the cards
+  const cards = S.done && showCipher;   // v165: the tutorial also stops on the solved grid first; Next shows the cards
   $('board').hidden = cards; $('reads').hidden = cards; $('snaps').hidden = !cards;
   if (cards) snaps();
   $('cipher').hidden = tut || !S.done; $('cipher').textContent = showCipher ? 'Show grid' : 'Show cipher';
-  document.body.classList.toggle('solved', S.done && !cards);
-  lede(cards ? 'A centuries-old cipher: One pattern of holes unlocks all four words, a quarter turn at a time.' : '');
+  document.body.classList.toggle('solved', S.done && !cards); document.body.classList.toggle('cipherview', cards);
+  lede(cards ? 'This is a centuries-old cipher. Picture a decoder card with holes. Upright, it shows the coral word. Turn it a quarter clockwise and it shows the yellow word, and so on. Solving the puzzle cuts the correct decoder card.' : '');
   if (tut){
     $('num').textContent = 'Tutorial'; $('date').innerHTML = S.done ? '' : '<button class="skip" id="tSkip">Skip</button>'; $('prev').disabled = $('next').disabled = true;
     $('controls').hidden = true;
@@ -545,26 +572,40 @@ function chrome(){
 function coach(){
   const c = $('coach'); c.hidden = !tut; document.body.classList.toggle('tut', tut); $('helpBtn').disabled = tut;   /* v130: no help during the tutorial */ if (!tut){ fit(); return; }
   const T = [
-    '<p><b>Welcome!</b> Four words hide in this grid, one per color. The words under the grid show what each color spells now. They start scrambled.</p><p>Striped tiles are already correct and never change. The theme, <b>Let\'s play</b>, is your clue.</p><div class="row"><button class="btn primary" id="tNext">Next</button></div>',
+    '<p><b>Welcome!</b> Four words hide in this grid, one per color. The bars under the grid show what each color spells now. Right now they\'re scrambled.</p><p>Striped tiles are already correct and never change. The theme, <b>Let\'s play</b>, is your clue.</p><div class="row"><button class="btn primary" id="tNext">Next</button></div>',
     '<p><b>Tap the W</b> in the top row.</p>',
-    '<p>The outlined tiles are one <b>pinwheel</b>: four linked tiles, one of each color. The letters the pinwheel controls are highlighted in the words below. <b>Tap the W again to turn the pinwheel.</b></p>',
-    '<p>The pinwheel\'s colors each moved one tile clockwise. The letters stayed put. Yellow now reads <b>WOIN</b>. For <i>Let\'s play</i>, that could be <b>WORD</b>, so the I and N need to become R and D.</p><p><b>Tap the R.</b></p>',
-    '<p><b>Tap the R again to turn the pinwheel.</b> Watch the yellow word below.</p>',
-    '<p>Yellow reads <b>WORN</b>, one letter off. The other words changed too: every turn changes one letter in each word.</p><p><b>Tap the D.</b></p>',
-    '<p><b>Tap the D again to turn the pinwheel and finish.</b></p>',
-    '<p><b>Solved!</b> All four words appeared at once: SPIN, WORD, GAME and PLAY. That\'s a centuries-old cipher: one card with holes, turned a quarter at a time, reveals all four words.</p><p>Tap <b>?</b> any time for the rules and controls.</p><div class="row"><button class="btn primary" id="tStart">'+tutBackLabel()+'</button></div>'
-  ];
+    '<p>The outlined tiles are one <b>pinwheel</b>. It has four linked tiles, one of each color. The letters the pinwheel controls are highlighted in the bars below. <b>Tap the W again to turn the pinwheel.</b></p>',
+    '<p>The pinwheel\'s colors each moved one tile clockwise. The letters stayed put. The yellow bar now reads <b>WOIN</b>. For <i>Let\'s play</i>, that could be <b>WORD</b>, so yellow needs to land on R and D instead of I and N.</p><p><b>Tap the R.</b></p>',
+    '<p>Every tile belongs to exactly one pinwheel. The four striped corners are a pinwheel too, already in place. Small puzzles have 4 pinwheels, Medium 6 and Large 9.</p><p><b>Tap the R again to turn the pinwheel.</b> Watch the yellow bar below.</p>',
+    '<p>The yellow bar now reads <b>WORN</b>, one letter off. The other bars changed too. Every turn changes one letter in each bar.</p><p><b>Tap the D.</b></p>',
+    '<p>The fourth and final pinwheel is now outlined. <b>Tap the D again to turn it and solve the puzzle.</b></p>',
+    '<p><b>Solved!</b> All four words appeared at once: SPIN, WORD, GAME and PLAY.</p><div class="row"><button class="btn primary" id="tCards">Next</button></div>',
+    '<p>That\'s a centuries-old cipher. Picture a decoder card with holes. Upright, it shows the coral word, <b>SPIN</b>. Turn it a quarter clockwise and it shows the yellow word, <b>WORD</b>, and so on. Solving the puzzle cut the correct decoder card.</p><p>Tap <b>?</b> any time for the rules and controls.</p><div class="row"><button class="btn primary" id="tStart">Done</button></div>'
+  ].map((h, k) => {   // v168: a Back button on every step after the first
+    if (!k) return h;
+    const b = '<button class="btn" id="tBack">Back</button>';
+    return h.includes('</div>') ? h.replace(/<\/div>$/, b + '</div>') : h + '<div class="row">' + b + '</div>';
+  });
   // Keep the card one height through the guided steps, so the board does not change size between steps.
-  if (!S.done && !c.style.minHeight){
+  if (!(S.done && showCipher) && !c.style.minHeight){
     let h = 0;
-    for (let k = 0; k < 7; k++){ c.innerHTML = T[k]; h = Math.max(h, c.getBoundingClientRect().height); }
+    for (let k = 0; k < 8; k++){ c.innerHTML = T[k]; h = Math.max(h, c.getBoundingClientRect().height); }
     c.style.minHeight = Math.ceil(h) + 'px';
   }
-  if (S.done) c.style.minHeight = '';
-  c.innerHTML = T[S.done ? 7 : tstep]; requestAnimationFrame(fit);
-  if ($('tNext')) $('tNext').onclick = () => { tstep = 1; paint(); coach(); };
+  if (S.done && showCipher) c.style.minHeight = '';
+  c.innerHTML = T[S.done ? (showCipher ? 8 : 7) : tstep]; requestAnimationFrame(fit);
+  if ($('tNext')) $('tNext').onclick = () => { tutPush(); tstep = 1; paint(); coach(); };
+  if ($('tBack')) $('tBack').onclick = tutBackStep;
   if ($('tSkip')) $('tSkip').onclick = endTut;
   if ($('tStart')) $('tStart').onclick = endTut;
+  if ($('tCards')) $('tCards').onclick = () => {
+    const bottom = $('coach').getBoundingClientRect().bottom;   // v186: keep the card's bottom, and its buttons, where they were
+    tutPush(); showCipher = true; chrome();
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const c = $('coach'), need = bottom - c.getBoundingClientRect().top;
+      if (need > c.offsetHeight) c.style.minHeight = need + 'px';
+    }));
+  };
 }
 // v124: outside the tutorial, use the spare height on tall screens (Home Screen app, big phones).
 // First the board grows toward the full column width, then the leftover goes to the spacing and word boxes.
@@ -582,12 +623,14 @@ function doneControlsExtra(){
   return Math.max(0, after - before);
 }
 let gridView = null;   // v138: {span, gap} of the grid view, so the cipher cards fill the same space
-function fill(){ fillSize(); if (!$('board').hidden && $('snaps').hidden){ const t = $('board-wrap').getBoundingClientRect().top, b = $('reads').getBoundingClientRect().bottom; gridView = {span: b - t, gap: getComputedStyle($('app')).rowGap}; } }
+function fill(){ fillSize(); if (!$('board').hidden && $('snaps').hidden){ const t = $('board-wrap').getBoundingClientRect().top, b = $('reads').getBoundingClientRect().bottom; gridView = {span: b - t, gap: getComputedStyle($('app')).rowGap, clock: clockSpace()}; } }
+// v184: the height the status line takes above the buttons; the cipher view hides it and gives that room to the cards
+function clockSpace(){ const c = $('clock'), b = $('controls').querySelector('.btn:not([hidden])'); if ($('controls').hidden || !b || c.hidden) return 0; return Math.max(0, b.getBoundingClientRect().top - c.getBoundingClientRect().top); }
 function fitCards(){
   // The cards, plus the caption under them, take exactly the grid view's space, so the status line and buttons stay put.
   $('app').style.setProperty('--appgap', gridView.gap);
   const cap = $('caption'), capH = cap.hidden ? 0 : cap.offsetHeight + parseFloat(gridView.gap);
-  const H = gridView.span - capH, wrap = $('board-wrap'), el = $('snaps');
+  const H = gridView.span + (gridView.clock || 0) - capH, wrap = $('board-wrap'), el = $('snaps');
   wrap.style.height = H + 'px';
   const col = $('app').clientWidth - 2 * parseFloat(getComputedStyle($('app')).paddingLeft);
   for (let k = 0; k < 2; k++){
@@ -642,7 +685,11 @@ const tutBackLabel = () => {
   const size = tutBack.n === 5 ? 'Medium ' : tutBack.n === 6 ? 'Large ' : '';
   return (store.get('tutored') ? 'Back to ' : 'Start ') + (size || 'puzzle ') + 'No. ' + (tutBack.day + 1);
 };
-function startTut(){ if (!tut) tutBack = {n, day}; tut = true; tstep = 0; load(); }
+const NEWS = 'news-tutorial2';   // v180: bump the key to announce something new
+function newsDone(){ store.set(NEWS, 1); $('news').hidden = true; }
+function newsPlace(){ const r = $('board').getBoundingClientRect(); if (r.height) $('news').style.setProperty('--ny', (r.top + r.height / 2) + 'px'); }
+addEventListener('resize', () => { if (!$('news').hidden) newsPlace(); });
+function startTut(){ newsDone();  if (!tut) tutBack = {n, day}; tut = true; tstep = 0; load(); }
 function endTut(){ tut = false; store.set('tutored', 1); store.set('seenHelp', 1); n = tutBack.n; day = tutBack.day; load(); window.scrollTo(0, 0); }
 function lede(html){ const c = $('caption'); c.innerHTML = html || ''; c.hidden = !html; }
 function startClock(){
@@ -652,6 +699,7 @@ function startClock(){
 function spin(i, user){
   if (S.done) return;
   if (tut && (!TUT_STEP[tstep] || TUT_STEP[tstep].pin !== i)) return;
+  if (tut) tutPush();   // every tap that gets past the gate moves the tutorial on one step
   const fresh = sel !== i; sel = i;
   if (S.lock.includes(i)){
     paint();
@@ -729,9 +777,8 @@ async function win(){
   S.done = true; sel = null; clearInterval(tick); tick = null; save();
   document.querySelectorAll('.tile').forEach(t => t.classList.remove('mate'));
   paint();
-  if (tut){ $('controls').hidden = true; if (!reduced) await sleep(700); chrome(); return; }
   chrome();   // v140: the status line and buttons switch to Solved in place, with no blank moment
-  if ($('help').open) sizeHelp();
+  if (!tut && $('help').open) sizeHelp();
   if (reduced) return;
   const id = ++runId;
   await sleep(950); if (id !== runId) return;   // let the last color sweep finish
@@ -838,7 +885,10 @@ $('quick').checked = !!store.get('quick');
 $('quick').onchange = () => store.set('quick', $('quick').checked);
 $('hideTheme').checked = !!store.get('hideTheme');
 $('hideTheme').onchange = () => { store.set('hideTheme', $('hideTheme').checked); chrome(); };
-if (!store.get('seenHelp')){ tut = true; tstep = 0; }
+if (!store.get('seenHelp')){ tut = true; tstep = 0; store.set(NEWS, 1); }   // new players get the new tutorial anyway
+else if (!store.get(NEWS)){ $('news').hidden = false; requestAnimationFrame(() => requestAnimationFrame(newsPlace)); }
+$('newsTry').onclick = () => { newsDone(); startTut(); };
+$('newsNo').onclick = newsDone;
 load();
 </script>
 </body>
